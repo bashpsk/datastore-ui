@@ -47,7 +47,10 @@ android {
 
     publishing {
 
-        singleVariant("release")
+        singleVariant("release") {
+
+            withSourcesJar()
+        }
     }
 }
 
@@ -86,17 +89,17 @@ dependencies {
     implementation(libs.bashpsk.empty.format)
 }
 
-afterEvaluate {
+publishing {
 
-    publishing {
+    publications {
 
-        publications {
+        register<MavenPublication>("release") {
 
-            create<MavenPublication>("mavenJava") {
+            groupId = "io.bashpsk"
+            artifactId = "datastore-ui"
+            version = "1.0.1"
 
-                groupId = "io.github.bashpsk"
-                artifactId = "datastore-ui"
-                version = "1.0.0"
+            afterEvaluate {
 
                 from(components["release"])
             }
