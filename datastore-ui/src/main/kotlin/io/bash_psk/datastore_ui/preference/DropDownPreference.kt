@@ -34,7 +34,7 @@ import io.bash_psk.datastore_ui.extension.setPreference
 import io.bash_psk.datastore_ui.resources.DatastoreUIDefaults
 
 @Composable
-fun <K,V>DropDownPreference(
+fun <K, V> DropDownPreference(
     modifier: Modifier = Modifier,
     keyString: () -> String,
     initialValue: () -> V,
