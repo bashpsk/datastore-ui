@@ -10,7 +10,7 @@ plugins {
 
 android {
 
-    namespace = "io.bash_psk.datastore_ui"
+    namespace = "io.bashpsk.datastoreui"
     compileSdk = 35
 
     defaultConfig {

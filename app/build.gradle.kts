@@ -9,12 +9,12 @@ plugins {
 
 android {
 
-    namespace = "io.bash_psk.datastore_demo"
+    namespace = "io.bashpsk.datastoredemo"
     compileSdk = 35
 
     defaultConfig {
 
-        applicationId = "io.bash_psk.datastore_demo"
+        applicationId = "io.bashpsk.datastoredemo"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

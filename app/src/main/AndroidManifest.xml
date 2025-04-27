@@ -13,7 +13,7 @@
         android:theme="@style/Theme.DatastoreUI"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="io.bashpsk.datastoredemo.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.DatastoreUI">
