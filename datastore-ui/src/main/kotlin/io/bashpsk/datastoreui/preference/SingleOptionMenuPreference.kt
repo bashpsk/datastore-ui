@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
@@ -200,11 +201,7 @@ fun <K, V> SingleOptionMenuPreference(
         colors = colors,
         text = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(modifier = Modifier.wrapContentWidth(), title = title)
         },
         leadingIcon = leadingContent,
         trailingIcon = trailingContent,

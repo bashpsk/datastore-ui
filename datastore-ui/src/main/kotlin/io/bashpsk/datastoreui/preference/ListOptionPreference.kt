@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -33,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,13 +49,14 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.launch
 
 @Composable
-fun <K, V> SingleOptionPreference(
+fun <K, V> ListOptionPreference(
     modifier: Modifier = Modifier,
-    key: () -> Preferences.Key<V>,
-    initialValue: () -> V,
+    key: () -> Preferences.Key<*>,
+    initialValue: () -> Any,
     entities: () -> Map<K, V> = { emptyMap() },
     title: () -> String,
     summary: () -> String = { "" },
+    optionMode: OptionPreferenceMode = OptionPreferenceMode.Single,
     leadingContent: @Composable (() -> Unit) = {},
     trailingContent: @Composable (() -> Unit) = {},
     colors: ListItemColors = ListItemDefaults.colors(),
@@ -71,10 +72,18 @@ fun <K, V> SingleOptionPreference(
     val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
 
-    val getSelectedItem by dataStore.getPreference(
-        key = key(),
-        initial = initialValue()
-    ).collectAsStateWithLifecycle(initialValue = initialValue())
+    val getSelectedItem by when (optionMode) {
+
+        OptionPreferenceMode.Single -> dataStore.getPreference(
+            key = key() as Preferences.Key<V>,
+            initial = initialValue() as V
+        ).collectAsStateWithLifecycle(initialValue = initialValue() as V)
+
+        OptionPreferenceMode.Multi -> dataStore.getPreference(
+            key = key() as Preferences.Key<Set<V>>,
+            initial = initialValue() as Set<V>
+        ).collectAsStateWithLifecycle(initialValue = initialValue() as Set<V>)
+    }
 
     AnimatedVisibility(visibleState = dialogVisibleState) {
 
@@ -132,7 +141,16 @@ fun <K, V> SingleOptionPreference(
                     items(items = entities().toList()) { item ->
 
                         val isSelected by remember {
-                            derivedStateOf { getSelectedItem == item.second }
+                            derivedStateOf {
+
+                                when (optionMode) {
+
+                                    OptionPreferenceMode.Single -> getSelectedItem == item.second
+                                    OptionPreferenceMode.Multi -> (getSelectedItem as Set<*>).contains(
+                                        item.second
+                                    )
+                                }
+                            }
                         }
 
                         Row(
@@ -145,10 +163,26 @@ fun <K, V> SingleOptionPreference(
 
                                         coroutineScope.launch {
 
-                                            dataStore.setPreference(
-                                                key = key(),
-                                                value = item.second
-                                            )
+                                            when (optionMode) {
+
+                                                OptionPreferenceMode.Single -> dataStore.setPreference(
+                                                    key = key() as Preferences.Key<V>,
+                                                    value = item.second
+                                                )
+
+                                                OptionPreferenceMode.Multi -> {
+
+                                                    val newEntities = when (isSelected) {
+                                                        true -> (getSelectedItem as Set<V>) - item.second
+                                                        false -> (getSelectedItem as Set<V>) + item.second
+                                                    }
+
+                                                    dataStore.setPreference(
+                                                        key = key() as Preferences.Key<Set<V>>,
+                                                        value = newEntities
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 )
@@ -157,7 +191,18 @@ fun <K, V> SingleOptionPreference(
                             horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
                         ) {
 
-                            RadioButton(selected = isSelected, onClick = null)
+                            when (optionMode) {
+
+                                OptionPreferenceMode.Single -> RadioButton(
+                                    selected = isSelected,
+                                    onClick = null
+                                )
+
+                                OptionPreferenceMode.Multi -> Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = null
+                                )
+                            }
 
                             Text(
                                 text = "${item.first}",
@@ -211,20 +256,17 @@ fun <K, V> SingleOptionPreference(
         trailingContent = trailingContent,
         headlineContent = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(title = title)
         },
         supportingContent = {
 
-            Text(
-                modifier = modifier.alpha(alpha = summaryAlpha),
-                text = summary(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.labelSmall
-            )
+            PreferenceSummary(summary = summary, alpha = summaryAlpha)
         }
     )
+}
+
+enum class OptionPreferenceMode {
+
+    Single,
+    Multi
 }

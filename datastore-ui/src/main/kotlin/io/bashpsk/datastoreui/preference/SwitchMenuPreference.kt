@@ -1,22 +1,20 @@
 package io.bashpsk.datastoreui.preference
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.bashpsk.datastoreui.extension.LocalDatastore
@@ -48,11 +46,7 @@ fun SwitchMenuPreference(
         colors = colors,
         text = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(modifier = Modifier.wrapContentWidth(), title = title)
         },
         leadingIcon = leadingContent,
         trailingIcon = {

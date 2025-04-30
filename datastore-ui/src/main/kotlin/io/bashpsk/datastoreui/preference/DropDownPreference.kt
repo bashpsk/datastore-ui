@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
@@ -147,20 +146,11 @@ fun <K, V> DropDownPreference(
         },
         headlineContent = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(title = title)
         },
         supportingContent = {
 
-            Text(
-                modifier = modifier.alpha(alpha = summaryAlpha),
-                text = summary(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.labelSmall
-            )
+            PreferenceSummary(summary = summary, alpha = summaryAlpha)
         }
     )
 }

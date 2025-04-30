@@ -70,9 +70,9 @@ import io.bashpsk.datastoreui.preference.CheckBoxPreference
 import io.bashpsk.datastoreui.preference.ColorPickPreference
 import io.bashpsk.datastoreui.preference.DropDownPreference
 import io.bashpsk.datastoreui.preference.FontPreference
-import io.bashpsk.datastoreui.preference.MultiOptionPreference
+import io.bashpsk.datastoreui.preference.ListOptionPreference
+import io.bashpsk.datastoreui.preference.OptionPreferenceMode
 import io.bashpsk.datastoreui.preference.SingleOptionMenuPreference
-import io.bashpsk.datastoreui.preference.SingleOptionPreference
 import io.bashpsk.datastoreui.preference.SliderPreference
 import io.bashpsk.datastoreui.preference.SwitchMenuPreference
 import io.bashpsk.datastoreui.preference.SwitchPreference
@@ -363,7 +363,7 @@ fun SampleScreen() {
 
             item {
 
-                MultiOptionPreference(
+                ListOptionPreference(
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(durationMillis = 250),
                         fadeOutSpec = tween(durationMillis = 100),
@@ -373,10 +373,11 @@ fun SampleScreen() {
                         )
                     ),
                     key = { stringSetPreferencesKey("MULTI-OPTION-PREFERENCE") },
-                    initialValue = { emptySet() },
+                    initialValue = { emptySet<String>() },
                     entities = { sampleEntities },
                     title = { "Multiple Option Selection Preference" },
                     summary = { "Select entities from the list. $summaryItems" },
+                    optionMode = OptionPreferenceMode.Multi,
                     leadingContent = {
 
                         Icon(
@@ -398,7 +399,7 @@ fun SampleScreen() {
 
             item {
 
-                SingleOptionPreference(
+                ListOptionPreference(
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(durationMillis = 250),
                         fadeOutSpec = tween(durationMillis = 100),
@@ -412,6 +413,7 @@ fun SampleScreen() {
                     entities = { sampleEntities },
                     title = { "Single Option Selection Preference" },
                     summary = { "Select one entity from the list." },
+                    optionMode = OptionPreferenceMode.Single,
                     leadingContent = {
 
                         Icon(

@@ -18,8 +18,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,6 +39,8 @@ fun ColorPickerDialog(
     isAlphaPanel: Boolean,
     onSelectedColor: (color: Color) -> Unit
 ) {
+
+    var selectedColor by remember { mutableStateOf(value = Color.Transparent) }
 
     AnimatedVisibility(visibleState = dialogVisibleState) {
 
@@ -95,7 +102,10 @@ fun ColorPickerDialog(
                         ColorPicker(
                             modifier = Modifier.fillParentMaxSize(),
                             isAlphaPanel = isAlphaPanel,
-                            onColorChange = onSelectedColor
+                            onColorChange = { color ->
+
+                                selectedColor = color
+                            }
                         )
                     }
                 }
@@ -105,6 +115,7 @@ fun ColorPickerDialog(
                 Button(
                     onClick = {
 
+                        onSelectedColor(selectedColor)
                         dialogVisibleState.targetState = false
                     }
                 ) {
@@ -118,6 +129,30 @@ fun ColorPickerDialog(
 
                     Text(
                         text = "Done",
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            },
+            dismissButton = {
+
+                OutlinedButton(
+                    onClick = {
+
+                        dialogVisibleState.targetState = false
+                    }
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Close"
+                    )
+
+                    Spacer(modifier = Modifier.width(width = 2.dp))
+
+                    Text(
+                        text = "Close",
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

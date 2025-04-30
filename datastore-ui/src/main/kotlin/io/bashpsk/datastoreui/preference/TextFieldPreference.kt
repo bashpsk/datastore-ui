@@ -344,20 +344,11 @@ fun <V> TextFieldPreference(
         trailingContent = trailingContent,
         headlineContent = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(title = title)
         },
         supportingContent = {
 
-            Text(
-                modifier = modifier.alpha(alpha = summaryAlpha),
-                text = summary(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.labelSmall
-            )
+            PreferenceSummary(summary = summary, alpha = summaryAlpha)
         }
     )
 }

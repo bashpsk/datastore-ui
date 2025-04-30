@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -224,19 +223,13 @@ fun FontPreference(
         trailingContent = trailingContent,
         headlineContent = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(title = title)
         },
         supportingContent = {
 
-            Text(
-                modifier = modifier.alpha(alpha = summaryAlpha),
-                text = summary(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.labelSmall,
+            PreferenceSummary(
+                summary = summary,
+                alpha = summaryAlpha,
                 fontFamily = when (selectedFontRes != null) {
 
                     true -> FontFamily(Font(resId = selectedFontRes!!))

@@ -35,11 +35,11 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import io.bash_psk.empty_format.EmptyFormat
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
-import io.bash_psk.empty_format.EmptyFormat
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -102,11 +102,7 @@ fun SliderPreference(
         },
         headlineContent = {
 
-            Text(
-                text = title(),
-                textAlign = TextAlign.Start,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            PreferenceTitle(title = title)
         },
         supportingContent = {
 
