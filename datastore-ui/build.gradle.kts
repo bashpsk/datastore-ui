@@ -11,7 +11,7 @@ plugins {
 android {
 
     namespace = "io.bashpsk.datastoreui"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
 
