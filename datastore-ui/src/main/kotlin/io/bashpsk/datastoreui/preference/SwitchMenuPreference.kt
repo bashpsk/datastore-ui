@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -70,7 +71,7 @@ fun SwitchMenuPreference(
         },
         onClick = {
 
-            coroutineScope.launch {
+            coroutineScope.launch(context = Dispatchers.IO) {
 
                 dataStore.setPreference(key = key(), value = getSwitchState.not())
             }

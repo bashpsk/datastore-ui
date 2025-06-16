@@ -49,6 +49,7 @@ import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.font.rememberFontRes
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -154,7 +155,7 @@ fun FontPreference(
                                     role = Role.RadioButton,
                                     onClick = {
 
-                                        coroutineScope.launch {
+                                        coroutineScope.launch(context = Dispatchers.IO) {
 
                                             dataStore.setPreference(
                                                 key = key(),

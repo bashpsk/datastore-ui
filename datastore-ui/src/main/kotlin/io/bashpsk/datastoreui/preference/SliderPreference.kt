@@ -40,6 +40,7 @@ import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import io.bashpsk.emptyformat.EmptyFormat
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +129,7 @@ fun SliderPreference(
                     steps = steps,
                     onValueChange = { position ->
 
-                        coroutineScope.launch {
+                        coroutineScope.launch(context = Dispatchers.IO) {
 
                             dataStore.setPreference(key = key(), value = position)
                         }

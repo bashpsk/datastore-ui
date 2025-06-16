@@ -39,6 +39,7 @@ import androidx.datastore.preferences.core.Preferences
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -115,7 +116,7 @@ fun TextFieldPreference(
                 Button(
                     onClick = {
 
-                        coroutineScope.launch {
+                        coroutineScope.launch(context = Dispatchers.IO) {
 
                             dataStore.setPreference(
                                 key = key(),
@@ -277,7 +278,7 @@ fun <V> TextFieldPreference(
                 Button(
                     onClick = {
 
-                        coroutineScope.launch {
+                        coroutineScope.launch(context = Dispatchers.IO) {
 
                             dataStore.setPreference(key = key(), value = textFieldValue)
                         }

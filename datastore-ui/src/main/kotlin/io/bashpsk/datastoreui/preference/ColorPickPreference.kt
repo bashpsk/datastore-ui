@@ -30,6 +30,7 @@ import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -63,7 +64,10 @@ fun ColorPickPreference(
         isAlphaPanel = isAlphaPanel(),
         onSelectedColor = { color ->
 
-            coroutineScope.launch { dataStore.setPreference(key = key(), value = color.toArgb()) }
+            coroutineScope.launch(context = Dispatchers.IO) {
+
+                dataStore.setPreference(key = key(), value = color.toArgb())
+            }
         }
     )
 

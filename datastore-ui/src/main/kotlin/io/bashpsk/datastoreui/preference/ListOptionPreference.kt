@@ -46,6 +46,7 @@ import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,7 +70,6 @@ fun <K, V> ListOptionPreference(
 ) {
 
     val dataStore = LocalDatastore.current
-    val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
 
     val getSelectedItem by when (optionMode) {
@@ -140,76 +140,29 @@ fun <K, V> ListOptionPreference(
 
                     items(items = entities().toList()) { item ->
 
-                        val isSelected by remember {
+                        val isSelected by remember(item, getSelectedItem) {
                             derivedStateOf {
 
                                 when (optionMode) {
 
                                     OptionPreferenceMode.Single -> getSelectedItem == item.second
-                                    OptionPreferenceMode.Multi -> (getSelectedItem as Set<*>).contains(
-                                        item.second
-                                    )
+
+                                    OptionPreferenceMode.Multi -> {
+
+                                        (getSelectedItem as Set<*>).contains(item.second)
+                                    }
                                 }
                             }
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = isSelected,
-                                    role = Role.RadioButton,
-                                    onClick = {
-
-                                        coroutineScope.launch {
-
-                                            when (optionMode) {
-
-                                                OptionPreferenceMode.Single -> dataStore.setPreference(
-                                                    key = key() as Preferences.Key<V>,
-                                                    value = item.second
-                                                )
-
-                                                OptionPreferenceMode.Multi -> {
-
-                                                    val newEntities = when (isSelected) {
-                                                        true -> (getSelectedItem as Set<V>) - item.second
-                                                        false -> (getSelectedItem as Set<V>) + item.second
-                                                    }
-
-                                                    dataStore.setPreference(
-                                                        key = key() as Preferences.Key<Set<V>>,
-                                                        value = newEntities
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                                .padding(all = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
-                        ) {
-
-                            when (optionMode) {
-
-                                OptionPreferenceMode.Single -> RadioButton(
-                                    selected = isSelected,
-                                    onClick = null
-                                )
-
-                                OptionPreferenceMode.Multi -> Checkbox(
-                                    checked = isSelected,
-                                    onCheckedChange = null
-                                )
-                            }
-
-                            Text(
-                                text = "${item.first}",
-                                textAlign = TextAlign.Start,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
+                        OptionItemView(
+                            modifier = Modifier.fillMaxWidth(),
+                            key = key,
+                            initialValue = initialValue,
+                            optionMode = optionMode,
+                            item = item,
+                            isSelected = isSelected
+                        )
                     }
                 }
             },
@@ -269,4 +222,81 @@ enum class OptionPreferenceMode {
 
     Single,
     Multi
+}
+
+@Composable
+private fun <K, V> OptionItemView(
+    modifier: Modifier = Modifier,
+    key: () -> Preferences.Key<*>,
+    initialValue: () -> Any,
+    optionMode: OptionPreferenceMode,
+    item: Pair<K, V>,
+    isSelected: Boolean
+) {
+
+    val dataStore = LocalDatastore.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val getSelectedItem by when (optionMode) {
+
+        OptionPreferenceMode.Single -> dataStore.getPreference(
+            key = key() as Preferences.Key<V>,
+            initial = initialValue() as V
+        ).collectAsStateWithLifecycle(initialValue = initialValue() as V)
+
+        OptionPreferenceMode.Multi -> dataStore.getPreference(
+            key = key() as Preferences.Key<Set<V>>,
+            initial = initialValue() as Set<V>
+        ).collectAsStateWithLifecycle(initialValue = initialValue() as Set<V>)
+    }
+
+    Row(
+        modifier = modifier
+            .selectable(
+                selected = isSelected,
+                role = Role.RadioButton,
+                onClick = {
+
+                    coroutineScope.launch(context = Dispatchers.IO) {
+
+                        when (optionMode) {
+
+                            OptionPreferenceMode.Single -> dataStore.setPreference(
+                                key = key() as Preferences.Key<V>,
+                                value = item.second
+                            )
+
+                            OptionPreferenceMode.Multi -> {
+
+                                val newEntities = when (isSelected) {
+                                    true -> (getSelectedItem as Set<V>) - item.second
+                                    false -> (getSelectedItem as Set<V>) + item.second
+                                }
+
+                                dataStore.setPreference(
+                                    key = key() as Preferences.Key<Set<V>>,
+                                    value = newEntities
+                                )
+                            }
+                        }
+                    }
+                }
+            )
+            .padding(all = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
+
+        when (optionMode) {
+
+            OptionPreferenceMode.Single -> RadioButton(selected = isSelected, onClick = null)
+            OptionPreferenceMode.Multi -> Checkbox(checked = isSelected, onCheckedChange = null)
+        }
+
+        Text(
+            text = "${item.first}",
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }
