@@ -52,6 +52,7 @@ android {
         singleVariant("release") {
 
             withSourcesJar()
+            withJavadocJar()
         }
     }
 }
@@ -97,13 +98,12 @@ publishing {
 
         register<MavenPublication>("release") {
 
-            groupId = "io.bashpsk"
-            artifactId = "datastore-ui"
-            version = "1.0.1"
-
             afterEvaluate {
 
                 from(components["release"])
+                groupId = "io.bashpsk"
+                artifactId = "datastore-ui"
+                version = "1.0.0"
             }
         }
     }
