@@ -68,7 +68,7 @@ fun FontPreference(
     shadowElevation: Dp = ListItemDefaults.Elevation,
     isDismissOnBackPress: Boolean = true,
     isDismissOnClickOutside: Boolean = true,
-    @FloatRange(from = 0.0, 1.0)
+    @FloatRange(from = 0.0, to = 1.0)
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
@@ -143,7 +143,7 @@ fun FontPreference(
 
                     items(items = entities().toList()) { fontItem ->
 
-                        val isSelected by remember {
+                        val isSelected by remember(getSelectedItem, fontItem) {
                             derivedStateOf { getSelectedItem == fontItem.second }
                         }
 

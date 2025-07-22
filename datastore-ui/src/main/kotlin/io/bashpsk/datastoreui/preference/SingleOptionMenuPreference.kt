@@ -78,7 +78,7 @@ fun <K, V> SingleOptionMenuPreference(
     ) {
 
         AlertDialog(
-            modifier = Modifier.fillMaxWidth(fraction = 0.90F),
+            modifier = Modifier.fillMaxWidth(fraction = 0.95F),
             onDismissRequest = {
 
                 dialogVisibleState.targetState = false
@@ -130,10 +130,10 @@ fun <K, V> SingleOptionMenuPreference(
                     horizontalAlignment = Alignment.Start
                 ) {
 
-                    items(items = entities().toList()) { item ->
+                    items(items = entities().toList()) { entryItem ->
 
-                        val isSelected by remember {
-                            derivedStateOf { getSelectedItem == item.second }
+                        val isSelected by remember(getSelectedItem, entryItem) {
+                            derivedStateOf { getSelectedItem == entryItem.second }
                         }
 
                         Row(
@@ -148,7 +148,7 @@ fun <K, V> SingleOptionMenuPreference(
 
                                             dataStore.setPreference(
                                                 key = key(),
-                                                value = item.second
+                                                value = entryItem.second
                                             )
                                         }
                                     }
@@ -161,7 +161,7 @@ fun <K, V> SingleOptionMenuPreference(
                             RadioButton(selected = isSelected, onClick = null)
 
                             Text(
-                                text = "${item.first}",
+                                text = "${entryItem.first}",
                                 textAlign = TextAlign.Start,
                                 style = MaterialTheme.typography.bodyMedium
                             )

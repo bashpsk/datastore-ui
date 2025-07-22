@@ -110,9 +110,11 @@ fun SampleScreen() {
         theme.name.lowercase().replaceFirstChar { char -> char.uppercaseChar() } to theme.name
     }
 
-    val reverseEntities by remember { derivedStateOf { sampleEntities.toReverseMap() } }
+    val reverseEntities by remember(sampleEntities) {
+        derivedStateOf { sampleEntities.toReverseMap() }
+    }
 
-    val summaryItems by remember {
+    val summaryItems by remember(getSelectedItem,reverseEntities) {
         derivedStateOf { getSelectedItem.mapNotNull { item -> reverseEntities[item] } }
     }
 

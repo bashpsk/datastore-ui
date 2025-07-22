@@ -64,7 +64,7 @@ fun SliderPreference(
     thumbTrackGapSize: Dp = 4.dp,
     trackInsideCornerSize: Dp = 2.dp,
     trackThickness: Dp = 4.dp,
-    @FloatRange(from = 0.0, 1.0)
+    @FloatRange(from = 0.0, to = 1.0)
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 

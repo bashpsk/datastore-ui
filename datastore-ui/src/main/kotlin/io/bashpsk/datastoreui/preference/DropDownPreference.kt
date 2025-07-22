@@ -49,7 +49,7 @@ fun <K, V> DropDownPreference(
     colors: ListItemColors = ListItemDefaults.colors(),
     tonalElevation: Dp = ListItemDefaults.Elevation,
     shadowElevation: Dp = ListItemDefaults.Elevation,
-    @FloatRange(from = 0.0, 1.0)
+    @FloatRange(from = 0.0, to = 1.0)
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
@@ -63,15 +63,8 @@ fun <K, V> DropDownPreference(
 
     var isMenuExpanded by remember { mutableStateOf(value = false) }
 
-    val menuArrowDegree by remember {
-        derivedStateOf {
-
-            when (isMenuExpanded) {
-
-                true -> 180.0F
-                false -> 0.0F
-            }
-        }
+    val menuArrowDegree by remember(isMenuExpanded) {
+        derivedStateOf { if (isMenuExpanded) 180.0F else 0.0F }
     }
 
     ListItem(
@@ -103,17 +96,17 @@ fun <K, V> DropDownPreference(
                 }
             ) {
 
-                entities().forEach { itemMenu ->
+                entities().forEach { menuItem ->
 
-                    val isSelected by remember {
-                        derivedStateOf { getSelectedItem == itemMenu.value }
+                    val isSelected by remember(getSelectedItem, menuItem) {
+                        derivedStateOf { getSelectedItem == menuItem.value }
                     }
 
                     DropdownMenuItem(
                         text = {
 
                             Text(
-                                text = "${itemMenu.key}",
+                                text = "${menuItem.key}",
                                 textAlign = TextAlign.Start,
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -136,7 +129,7 @@ fun <K, V> DropDownPreference(
 
                             coroutineScope.launch(context = Dispatchers.IO) {
 
-                                dataStore.setPreference(key = key(), value = itemMenu.value)
+                                dataStore.setPreference(key = key(), value = menuItem.value)
                             }
 
                             isMenuExpanded = false

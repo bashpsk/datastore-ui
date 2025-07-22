@@ -65,7 +65,7 @@ fun <K, V> ListOptionPreference(
     shadowElevation: Dp = ListItemDefaults.Elevation,
     isDismissOnBackPress: Boolean = true,
     isDismissOnClickOutside: Boolean = true,
-    @FloatRange(from = 0.0, 1.0)
+    @FloatRange(from = 0.0, to = 1.0)
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
@@ -138,18 +138,18 @@ fun <K, V> ListOptionPreference(
                     horizontalAlignment = Alignment.Start
                 ) {
 
-                    items(items = entities().toList()) { item ->
+                    items(items = entities().toList()) { entryItem ->
 
-                        val isSelected by remember(item, getSelectedItem) {
+                        val isSelected by remember(entryItem, getSelectedItem) {
                             derivedStateOf {
 
                                 when (optionMode) {
 
-                                    OptionPreferenceMode.Single -> getSelectedItem == item.second
+                                    OptionPreferenceMode.Single -> getSelectedItem == entryItem.second
 
                                     OptionPreferenceMode.Multi -> {
 
-                                        (getSelectedItem as Set<*>).contains(item.second)
+                                        (getSelectedItem as Set<*>).contains(entryItem.second)
                                     }
                                 }
                             }
@@ -160,7 +160,7 @@ fun <K, V> ListOptionPreference(
                             key = key,
                             initialValue = initialValue,
                             optionMode = optionMode,
-                            item = item,
+                            item = entryItem,
                             isSelected = isSelected
                         )
                     }

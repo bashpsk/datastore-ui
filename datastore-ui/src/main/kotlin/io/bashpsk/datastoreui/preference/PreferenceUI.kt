@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 
 @Composable
-internal fun PreferenceTitle(modifier: Modifier = Modifier, title: () -> String) {
+internal inline fun PreferenceTitle(modifier: Modifier = Modifier, title: () -> String) {
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -34,7 +34,7 @@ internal fun PreferenceTitle(modifier: Modifier = Modifier, title: () -> String)
 }
 
 @Composable
-internal fun PreferenceSummary(
+internal inline fun PreferenceSummary(
     modifier: Modifier = Modifier,
     summary: () -> String = { "" },
     alpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
@@ -58,7 +58,7 @@ internal fun PreferenceSummary(
 }
 
 @Composable
-internal fun PreferenceSummary(
+internal inline fun PreferenceSummary(
     modifier: Modifier = Modifier,
     summary: () -> String = { "" },
     alpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA,

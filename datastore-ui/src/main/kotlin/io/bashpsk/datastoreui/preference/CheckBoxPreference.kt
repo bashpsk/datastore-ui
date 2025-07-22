@@ -32,7 +32,7 @@ fun CheckBoxPreference(
     colors: ListItemColors = ListItemDefaults.colors(),
     tonalElevation: Dp = ListItemDefaults.Elevation,
     shadowElevation: Dp = ListItemDefaults.Elevation,
-    @FloatRange(from = 0.0, 1.0)
+    @FloatRange(from = 0.0, to = 1.0)
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
