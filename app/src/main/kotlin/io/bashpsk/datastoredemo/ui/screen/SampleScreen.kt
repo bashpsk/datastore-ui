@@ -70,9 +70,9 @@ import io.bashpsk.datastoreui.preference.CheckBoxPreference
 import io.bashpsk.datastoreui.preference.ColorPickPreference
 import io.bashpsk.datastoreui.preference.DropDownPreference
 import io.bashpsk.datastoreui.preference.FontPreference
+import io.bashpsk.datastoreui.preference.ListOptionMenuPreference
 import io.bashpsk.datastoreui.preference.ListOptionPreference
-import io.bashpsk.datastoreui.preference.OptionPreferenceMode
-import io.bashpsk.datastoreui.preference.SingleOptionMenuPreference
+import io.bashpsk.datastoreui.preference.SetOptionPreference
 import io.bashpsk.datastoreui.preference.SliderPreference
 import io.bashpsk.datastoreui.preference.SwitchMenuPreference
 import io.bashpsk.datastoreui.preference.SwitchPreference
@@ -98,12 +98,13 @@ fun SampleScreen() {
 
     val getSelectedItem by dataStore.getPreference(
         key = stringSetPreferencesKey("MULTI-OPTION-PREFERENCE"),
-        initial = emptySet<String>()
-    ).collectAsStateWithLifecycle(initialValue = emptySet<String>())
+        initial = emptySet()
+    ).collectAsStateWithLifecycle(initialValue = emptySet())
 
     var textFieldValue by remember { mutableStateOf(value = TextFieldValue(text = getFieldText)) }
 
     val sampleEntities = mapOf("One" to "Kotlin", "Two" to "Bash PSK", "Three" to "Empty Layer")
+    val sampleTwoEntities = mapOf(1 to "Kotlin", 2 to "Bash PSK", 3 to "Empty Layer")
 
     val themeEntities = AppTheme.entries.associate { theme ->
 
@@ -114,7 +115,7 @@ fun SampleScreen() {
         derivedStateOf { sampleEntities.toReverseMap() }
     }
 
-    val summaryItems by remember(getSelectedItem,reverseEntities) {
+    val summaryItems by remember(getSelectedItem, reverseEntities) {
         derivedStateOf { getSelectedItem.mapNotNull { item -> reverseEntities[item] } }
     }
 
@@ -155,7 +156,7 @@ fun SampleScreen() {
                         }
                     ) {
 
-                        SingleOptionMenuPreference(
+                        ListOptionMenuPreference(
                             key = { stringPreferencesKey("SINGLE-OPTION-MENU-PREFERENCE") },
                             initialValue = { AppTheme.SYSTEM.name },
                             entities = { themeEntities },
@@ -365,7 +366,7 @@ fun SampleScreen() {
 
             item {
 
-                ListOptionPreference(
+                SetOptionPreference(
                     modifier = Modifier.animateItem(
                         fadeInSpec = tween(durationMillis = 250),
                         fadeOutSpec = tween(durationMillis = 100),
@@ -375,11 +376,10 @@ fun SampleScreen() {
                         )
                     ),
                     key = { stringSetPreferencesKey("MULTI-OPTION-PREFERENCE") },
-                    initialValue = { emptySet<String>() },
-                    entities = { sampleEntities },
+                    initialValue = { emptySet() },
+                    entities = { sampleTwoEntities },
                     title = { "Multiple Option Selection Preference" },
                     summary = { "Select entities from the list. $summaryItems" },
-                    optionMode = OptionPreferenceMode.Multi,
                     leadingContent = {
 
                         Icon(
@@ -415,7 +415,6 @@ fun SampleScreen() {
                     entities = { sampleEntities },
                     title = { "Single Option Selection Preference" },
                     summary = { "Select one entity from the list." },
-                    optionMode = OptionPreferenceMode.Single,
                     leadingContent = {
 
                         Icon(

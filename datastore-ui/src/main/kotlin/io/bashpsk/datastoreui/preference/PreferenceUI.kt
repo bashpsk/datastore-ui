@@ -21,8 +21,8 @@ internal inline fun PreferenceTitle(modifier: Modifier = Modifier, title: () -> 
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(space = 4.dp),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(space = 4.dp)
     ) {
 
         Text(
@@ -42,8 +42,8 @@ internal inline fun PreferenceSummary(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(space = 4.dp),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(space = 4.dp)
     ) {
 
         Spacer(modifier = Modifier.height(height = 0.dp))
@@ -67,8 +67,8 @@ internal inline fun PreferenceSummary(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(space = 4.dp),
-        horizontalAlignment = Alignment.Start
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(space = 4.dp)
     ) {
 
         Spacer(modifier = Modifier.height(height = 0.dp))

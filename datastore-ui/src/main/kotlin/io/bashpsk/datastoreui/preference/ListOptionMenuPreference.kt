@@ -48,7 +48,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun <K, V> SingleOptionMenuPreference(
+fun <K, V> ListOptionMenuPreference(
     modifier: Modifier = Modifier,
     key: () -> Preferences.Key<V>,
     initialValue: () -> V,
@@ -94,8 +94,8 @@ fun <K, V> SingleOptionMenuPreference(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Text(
@@ -126,11 +126,14 @@ fun <K, V> SingleOptionMenuPreference(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(space = 4.dp),
-                    horizontalAlignment = Alignment.Start
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(space = 4.dp)
                 ) {
 
-                    items(items = entities().toList()) { entryItem ->
+                    items(
+                        items = entities().toList(),
+                        key = { entryItem -> entryItem.first.toString() }
+                    ) { entryItem ->
 
                         val isSelected by remember(getSelectedItem, entryItem) {
                             derivedStateOf { getSelectedItem == entryItem.second }
@@ -154,8 +157,8 @@ fun <K, V> SingleOptionMenuPreference(
                                     }
                                 )
                                 .padding(all = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
 
                             RadioButton(selected = isSelected, onClick = null)

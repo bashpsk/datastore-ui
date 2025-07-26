@@ -22,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -61,7 +62,7 @@ fun <K, V> DropDownPreference(
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
 
-    var isMenuExpanded by remember { mutableStateOf(value = false) }
+    var isMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     val menuArrowDegree by remember(isMenuExpanded) {
         derivedStateOf { if (isMenuExpanded) 180.0F else 0.0F }

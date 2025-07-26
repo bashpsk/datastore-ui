@@ -10,7 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.bashpsk.datastoredemo.datastore.dataStore
 import io.bashpsk.datastoredemo.settings.AppTheme
-import io.bashpsk.datastoredemo.ui.screen.SampleScreen
+import io.bashpsk.datastoredemo.ui.screen.ColorPickerDemoScreen
 import io.bashpsk.datastoredemo.ui.theme.DatastoreUITheme
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
@@ -33,7 +33,8 @@ class MainActivity : ComponentActivity() {
 
                 DatastoreUITheme(darkTheme = AppTheme.getTheme(theme = getAppTheme)) {
 
-                    SampleScreen()
+//                    SampleScreen()
+                    ColorPickerDemoScreen()
                 }
             }
         }

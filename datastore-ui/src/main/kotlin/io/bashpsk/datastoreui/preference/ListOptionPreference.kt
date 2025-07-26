@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -52,12 +51,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun <K, V> ListOptionPreference(
     modifier: Modifier = Modifier,
-    key: () -> Preferences.Key<*>,
-    initialValue: () -> Any,
+    key: () -> Preferences.Key<V>,
+    initialValue: () -> V,
     entities: () -> Map<K, V> = { emptyMap() },
     title: () -> String,
     summary: () -> String = { "" },
-    optionMode: OptionPreferenceMode = OptionPreferenceMode.Single,
     leadingContent: @Composable (() -> Unit) = {},
     trailingContent: @Composable (() -> Unit) = {},
     colors: ListItemColors = ListItemDefaults.colors(),
@@ -70,25 +68,18 @@ fun <K, V> ListOptionPreference(
 ) {
 
     val dataStore = LocalDatastore.current
-    val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
+    val coroutineScope = rememberCoroutineScope()
+    val dialogVisibleState = remember { MutableTransitionState(false) }
 
-    val getSelectedItem by when (optionMode) {
-
-        OptionPreferenceMode.Single -> dataStore.getPreference(
-            key = key() as Preferences.Key<V>,
-            initial = initialValue() as V
-        ).collectAsStateWithLifecycle(initialValue = initialValue() as V)
-
-        OptionPreferenceMode.Multi -> dataStore.getPreference(
-            key = key() as Preferences.Key<Set<V>>,
-            initial = initialValue() as Set<V>
-        ).collectAsStateWithLifecycle(initialValue = initialValue() as Set<V>)
-    }
+    val getOptionSelectedItem by dataStore.getPreference(
+        key = key(),
+        initial = initialValue()
+    ).collectAsStateWithLifecycle(initialValue = initialValue())
 
     AnimatedVisibility(visibleState = dialogVisibleState) {
 
         AlertDialog(
-            modifier = Modifier.fillMaxWidth(fraction = 0.90F),
+            modifier = Modifier.fillMaxWidth(fraction = 0.95F),
             onDismissRequest = {
 
                 dialogVisibleState.targetState = false
@@ -103,8 +94,8 @@ fun <K, V> ListOptionPreference(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Text(
@@ -134,34 +125,29 @@ fun <K, V> ListOptionPreference(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(space = 4.dp),
-                    horizontalAlignment = Alignment.Start
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(space = 4.dp)
                 ) {
 
                     items(items = entities().toList()) { entryItem ->
 
-                        val isSelected by remember(entryItem, getSelectedItem) {
-                            derivedStateOf {
-
-                                when (optionMode) {
-
-                                    OptionPreferenceMode.Single -> getSelectedItem == entryItem.second
-
-                                    OptionPreferenceMode.Multi -> {
-
-                                        (getSelectedItem as Set<*>).contains(entryItem.second)
-                                    }
-                                }
-                            }
+                        val isSelected by remember(entryItem, getOptionSelectedItem) {
+                            derivedStateOf { getOptionSelectedItem == entryItem.second }
                         }
 
                         OptionItemView(
                             modifier = Modifier.fillMaxWidth(),
-                            key = key,
-                            initialValue = initialValue,
-                            optionMode = optionMode,
                             item = entryItem,
-                            isSelected = isSelected
+                            isSelected = isSelected,
+                            onItemClick = { item ->
+
+                                coroutineScope.launch(context = Dispatchers.IO) {
+
+                                    dataStore.setPreference(key = key(), value = item.second)
+                                }
+
+                                dialogVisibleState.targetState = false
+                            }
                         )
                     }
                 }
@@ -218,37 +204,13 @@ fun <K, V> ListOptionPreference(
     )
 }
 
-enum class OptionPreferenceMode {
-
-    Single,
-    Multi
-}
-
 @Composable
 private fun <K, V> OptionItemView(
     modifier: Modifier = Modifier,
-    key: () -> Preferences.Key<*>,
-    initialValue: () -> Any,
-    optionMode: OptionPreferenceMode,
     item: Pair<K, V>,
-    isSelected: Boolean
+    isSelected: Boolean,
+    onItemClick: (item: Pair<K, V>) -> Unit
 ) {
-
-    val dataStore = LocalDatastore.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val getSelectedItem by when (optionMode) {
-
-        OptionPreferenceMode.Single -> dataStore.getPreference(
-            key = key() as Preferences.Key<V>,
-            initial = initialValue() as V
-        ).collectAsStateWithLifecycle(initialValue = initialValue() as V)
-
-        OptionPreferenceMode.Multi -> dataStore.getPreference(
-            key = key() as Preferences.Key<Set<V>>,
-            initial = initialValue() as Set<V>
-        ).collectAsStateWithLifecycle(initialValue = initialValue() as Set<V>)
-    }
 
     Row(
         modifier = modifier
@@ -257,41 +219,15 @@ private fun <K, V> OptionItemView(
                 role = Role.RadioButton,
                 onClick = {
 
-                    coroutineScope.launch(context = Dispatchers.IO) {
-
-                        when (optionMode) {
-
-                            OptionPreferenceMode.Single -> dataStore.setPreference(
-                                key = key() as Preferences.Key<V>,
-                                value = item.second
-                            )
-
-                            OptionPreferenceMode.Multi -> {
-
-                                val newEntities = when (isSelected) {
-                                    true -> (getSelectedItem as Set<V>) - item.second
-                                    false -> (getSelectedItem as Set<V>) + item.second
-                                }
-
-                                dataStore.setPreference(
-                                    key = key() as Preferences.Key<Set<V>>,
-                                    value = newEntities
-                                )
-                            }
-                        }
-                    }
+                    onItemClick(item)
                 }
             )
             .padding(all = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
 
-        when (optionMode) {
-
-            OptionPreferenceMode.Single -> RadioButton(selected = isSelected, onClick = null)
-            OptionPreferenceMode.Multi -> Checkbox(checked = isSelected, onCheckedChange = null)
-        }
+        RadioButton(selected = isSelected, onClick = null)
 
         Text(
             text = "${item.first}",

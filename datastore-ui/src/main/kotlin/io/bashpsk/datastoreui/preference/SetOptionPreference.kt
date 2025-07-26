@@ -17,15 +17,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -35,8 +34,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -47,20 +44,18 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.setPreference
-import io.bashpsk.datastoreui.font.rememberFontRes
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun FontPreference(
+fun <K> SetOptionPreference(
     modifier: Modifier = Modifier,
-    key: () -> Preferences.Key<String>,
-    initialValue: () -> String,
-    entities: () -> Map<Int, String> = { emptyMap() },
+    key: () -> Preferences.Key<Set<String>>,
+    initialValue: () -> Set<String>,
+    entities: () -> Map<K, String> = { emptyMap() },
     title: () -> String,
     summary: () -> String = { "" },
-    previewText: () -> String = { "This is sample text. Time - 3:33 AM" },
     leadingContent: @Composable (() -> Unit) = {},
     trailingContent: @Composable (() -> Unit) = {},
     colors: ListItemColors = ListItemDefaults.colors(),
@@ -74,20 +69,17 @@ fun FontPreference(
 
     val dataStore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
+    val dialogVisibleState = remember { MutableTransitionState(false) }
 
-    val getSelectedItem by dataStore.getPreference(
+    val getOptionSelectedItem by dataStore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
 
-    val dialogVisibleState = remember { MutableTransitionState(false) }
-
-    val selectedFontRes by rememberFontRes(id = getSelectedItem, entities = entities())
-
     AnimatedVisibility(visibleState = dialogVisibleState) {
 
         AlertDialog(
-            modifier = Modifier.fillMaxWidth(fraction = 0.90f),
+            modifier = Modifier.fillMaxWidth(fraction = 0.95F),
             onDismissRequest = {
 
                 dialogVisibleState.targetState = false
@@ -98,10 +90,6 @@ fun FontPreference(
                 dismissOnClickOutside = isDismissOnClickOutside
             ),
             shape = MaterialTheme.shapes.small,
-            titleContentColor = AlertDialogDefaults.titleContentColor,
-            containerColor = AlertDialogDefaults.containerColor.copy(alpha = 0.70f),
-            textContentColor = AlertDialogDefaults.textContentColor,
-            iconContentColor = AlertDialogDefaults.iconContentColor,
             title = {
 
                 Row(
@@ -141,43 +129,32 @@ fun FontPreference(
                     verticalArrangement = Arrangement.spacedBy(space = 4.dp)
                 ) {
 
-                    items(items = entities().toList()) { fontItem ->
+                    items(items = entities().toList()) { entryItem ->
 
-                        val isSelected by remember(getSelectedItem, fontItem) {
-                            derivedStateOf { getSelectedItem == fontItem.second }
+                        val isSelected by remember(entryItem, getOptionSelectedItem) {
+                            derivedStateOf { getOptionSelectedItem.contains(entryItem.second) }
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .selectable(
-                                    selected = isSelected,
-                                    role = Role.RadioButton,
-                                    onClick = {
+                        OptionItemView(
+                            modifier = Modifier.fillMaxWidth(),
+                            item = entryItem,
+                            isSelected = isSelected,
+                            onItemClick = { item ->
 
-                                        coroutineScope.launch(context = Dispatchers.IO) {
+                                coroutineScope.launch(context = Dispatchers.IO) {
 
-                                            dataStore.setPreference(
-                                                key = key(),
-                                                value = fontItem.second
-                                            )
-                                        }
+                                    val newEntities = when (isSelected) {
+
+                                        true -> getOptionSelectedItem - item.second
+                                        false -> getOptionSelectedItem + item.second
                                     }
-                                )
-                                .padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
 
-                            RadioButton(selected = isSelected, onClick = null)
+                                    dataStore.setPreference(key = key(), value = newEntities)
+                                }
 
-                            Text(
-                                text = previewText(),
-                                textAlign = TextAlign.Start,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontFamily = FontFamily(Font(resId = fontItem.first))
-                            )
-                        }
+                                dialogVisibleState.targetState = false
+                            }
+                        )
                     }
                 }
             },
@@ -228,15 +205,40 @@ fun FontPreference(
         },
         supportingContent = {
 
-            PreferenceSummary(
-                summary = summary,
-                alpha = summaryAlpha,
-                fontFamily = when (selectedFontRes != null) {
-
-                    true -> FontFamily(Font(resId = selectedFontRes!!))
-                    false -> FontFamily.Default
-                }
-            )
+            PreferenceSummary(summary = summary, alpha = summaryAlpha)
         }
     )
+}
+
+@Composable
+private fun <K> OptionItemView(
+    modifier: Modifier = Modifier,
+    item: Pair<K, String>,
+    isSelected: Boolean,
+    onItemClick: (item: Pair<K, String>) -> Unit
+) {
+
+    Row(
+        modifier = modifier
+            .selectable(
+                selected = isSelected,
+                role = Role.RadioButton,
+                onClick = {
+
+                    onItemClick(item)
+                }
+            )
+            .padding(all = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Checkbox(checked = isSelected, onCheckedChange = null)
+
+        Text(
+            text = "${item.first}",
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
 }

@@ -63,8 +63,8 @@ fun ColorPickerDialog(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Text(
@@ -93,20 +93,20 @@ fun ColorPickerDialog(
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(space = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(space = 16.dp)
                 ) {
 
                     item {
 
-                        ColorPicker(
+                        /*ColorPicker(
                             modifier = Modifier.fillParentMaxSize(),
                             isAlphaPanel = isAlphaPanel,
                             onColorChange = { color ->
 
                                 selectedColor = color
                             }
-                        )
+                        )*/
                     }
                 }
             },

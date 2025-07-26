@@ -52,7 +52,7 @@ fun ColorPickPreference(
 
     val dataStore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
-    val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
+    val dialogVisibleState = remember { MutableTransitionState(false) }
 
     val getColorArgb by dataStore.getPreference(
         key = key(),

@@ -63,7 +63,7 @@ fun TextFieldPreference(
 
     val dataStore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
-    val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
+    val dialogVisibleState = remember { MutableTransitionState(false) }
 
     AnimatedVisibility(visibleState = dialogVisibleState) {
 
@@ -83,8 +83,8 @@ fun TextFieldPreference(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Text(
@@ -225,7 +225,7 @@ fun <V> TextFieldPreference(
 
     val dataStore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
-    val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
+    val dialogVisibleState = remember { MutableTransitionState(false) }
 
     AnimatedVisibility(visibleState = dialogVisibleState) {
 
@@ -245,8 +245,8 @@ fun <V> TextFieldPreference(
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
 
                     Text(

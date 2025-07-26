@@ -1,394 +1,731 @@
 package io.bashpsk.datastoreui.color
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.RectF
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.drag
-import androidx.compose.foundation.interaction.Interaction
-import androidx.compose.foundation.interaction.InteractionSource
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.SweepGradientShader
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.isSpecified
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.graphics.toPixelMap
-import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.toOffset
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.toRect
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import io.bashpsk.emptyformat.EmptyFormat
+
+@Composable
+fun rememberColorPickerState(
+    initialColor: Color = Color.Black,
+    enableAlphaPanel: Boolean = false
+): ColorPickerState {
+
+    return remember(enableAlphaPanel, initialColor) {
+        ColorPickerState(initialColor = initialColor, isAlphaPanelEnabled = enableAlphaPanel)
+    }
+}
+
+@Stable
+class ColorPickerState(initialColor: Color, val isAlphaPanelEnabled: Boolean = false) {
+
+    var selectedColor by mutableStateOf(initialColor)
+        private set
+
+    var hueValue by mutableFloatStateOf(0F)
+        private set
+
+    var saturationValue by mutableFloatStateOf(0F)
+        private set
+
+    var lightnessValue by mutableFloatStateOf(0F)
+        private set
+
+    var alphaValue by mutableFloatStateOf(initialColor.alpha)
+        private set
+
+    init {
+
+        val hslComponents = initialColor.toHslComponents()
+
+        hueValue = hslComponents[0]
+        saturationValue = hslComponents[1]
+        lightnessValue = hslComponents[2]
+    }
+
+    fun updateColor(newColor: Color) {
+
+        val hslComponents = newColor.toHslComponents()
+
+        selectedColor = newColor
+        hueValue = hslComponents[0]
+        saturationValue = hslComponents[1]
+        lightnessValue = hslComponents[2]
+        alphaValue = newColor.alpha
+    }
+
+    fun updateHslA(hue: Float, saturation: Float, lightness: Float, alpha: Float) {
+
+        hueValue = hue.coerceIn(range = 0F..360F)
+        saturationValue = saturation.coerceIn(range = 0F..1F)
+        lightnessValue = lightness.coerceIn(range = 0F..1F)
+        alphaValue = alpha.coerceIn(range = 0F..1F)
+        selectedColor = Color.hsl(hueValue, saturationValue, lightnessValue, alphaValue)
+    }
+}
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ColorPicker(
     modifier: Modifier = Modifier,
-    isAlphaPanel: Boolean = false,
-    onColorChange: (color: Color) -> Unit
+    state: ColorPickerState = rememberColorPickerState()
 ) {
 
-    val contentColor = LocalContentColor.current
-    var selectedColor by remember { mutableStateOf(value = Color.Unspecified) }
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+    ) {
+
+        SaturationLightnessPanel(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(ratio = 1.0F),
+            hueValue = state.hueValue,
+            saturationValue = state.saturationValue,
+            lightnessValue = state.lightnessValue,
+            onSelectionChanged = { saturation, lightness ->
+
+                state.updateHslA(
+                    hue = state.hueValue,
+                    saturation = saturation,
+                    lightness = lightness,
+                    alpha = state.alphaValue
+                )
+            }
+        )
+
+        HuePanel(
+            modifier = Modifier.fillMaxWidth(),
+            currentHue = state.hueValue,
+            onHueChanged = { newHue ->
+
+                state.updateHslA(
+                    hue = newHue,
+                    saturation = state.saturationValue,
+                    lightness = state.lightnessValue,
+                    alpha = state.alphaValue
+                )
+            }
+        )
+
+        if (state.isAlphaPanelEnabled) {
+
+            AlphaPanel(
+                modifier = Modifier.fillMaxWidth(),
+                currentAlpha = state.alphaValue,
+                baseColor = Color.hsl(
+                    hue = state.hueValue,
+                    saturation = state.saturationValue,
+                    lightness = state.lightnessValue
+                ),
+                onAlphaChanged = { newAlpha ->
+
+                    state.updateHslA(
+                        hue = state.hueValue,
+                        saturation = state.saturationValue,
+                        lightness = state.lightnessValue,
+                        alpha = newAlpha
+                    )
+                }
+            )
+        }
+
+        ColorPreview(
+            modifier = Modifier,
+            color = state.selectedColor
+        )
+    }
+}
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+private fun SaturationLightnessPanel(
+    modifier: Modifier = Modifier,
+    hueValue: Float,
+    saturationValue: Float,
+    lightnessValue: Float,
+    onSelectionChanged: (saturation: Float, lightness: Float) -> Unit
+) {
+
+    BoxWithConstraints(
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+
+        val panelWidth = constraints.maxWidth.toFloat()
+        val panelHeight = constraints.maxHeight.toFloat()
+
+        val thumbPosition = Offset(
+            x = saturationValue * panelWidth,
+            y = (1F - lightnessValue) * panelHeight
+        )
+
+        val thumbColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+        val thumbRadius = 10.dp
+        val thumbWidth = 2.4.dp
+
+        val tapPointerInput = Modifier.pointerInput(panelWidth, panelHeight, hueValue) {
+
+            detectTapGestures(
+                onPress = { offset ->
+
+                    val newSaturation = (offset.x / panelWidth).coerceIn(range = 0F..1F)
+                    val newLightness = (1F - (offset.y / panelHeight)).coerceIn(range = 0F..1F)
+
+                    onSelectionChanged(newSaturation, newLightness)
+                }
+            )
+        }
+
+        val dragPointerInput = Modifier.pointerInput(panelWidth, panelHeight, hueValue) {
+
+            detectDragGestures { change, _ ->
+
+                val newX = (change.position.x).coerceIn(0F..panelWidth)
+                val newY = (change.position.y).coerceIn(0F..panelHeight)
+                val newSaturation = (newX / panelWidth).coerceIn(range = 0F..1F)
+                val newLightness = (1F - (newY / panelHeight)).coerceIn(range = 0F..1F)
+
+                onSelectionChanged(newSaturation, newLightness)
+                change.consume()
+            }
+        }
+
+        Canvas(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(tapPointerInput)
+                .then(dragPointerInput)
+                .clip(shape = MaterialTheme.shapes.extraSmall)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.65F),
+                    shape = MaterialTheme.shapes.extraSmall
+                ),
+            contentDescription = "Saturation Lightness Panel"
+        ) {
+
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(Color.hsl(hueValue, 0F, 0.5F), Color.hsl(hueValue, 1F, 0.5F))
+                )
+            )
+
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color.White, Color.Transparent),
+                    startY = 0F,
+                    endY = center.y
+                )
+            )
+
+            drawRect(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Color.Transparent, Color.Black),
+                    startY = center.y,
+                    endY = size.height
+                )
+            )
+
+            drawDragHandle(
+                position = thumbPosition,
+                radius = thumbRadius,
+                color = thumbColor,
+                width = thumbWidth
+            )
+        }
+    }
+}
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+private fun HuePanel(
+    modifier: Modifier = Modifier,
+    currentHue: Float,
+    onHueChanged: (Float) -> Unit
+) {
+
+    val density = LocalDensity.current
+
+    val hueColors = remember {
+        (0..359).map { hue ->
+            Color.hsl(hue = hue.toFloat(), saturation = 1F, lightness = 0.5F)
+        } + Color.hsl(0F, 1F, 0.5F)
+    }
+
+    val thumbColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val panelBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65F)
+
+    val trackHeight = 32.dp
+    val thumbRadius = trackHeight / 2
+    val thumbWidth = 2.4.dp
+
+    val trackHeightPx = with(density) { trackHeight.toPx() }
+    val thumbRadiusPx = with(density) { thumbRadius.toPx() }
 
     Column(
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(space = 4.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(space = 12.dp)
     ) {
+
+        Text(
+            text = "Hue : ${currentHue.toInt()}°",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
 
         BoxWithConstraints(
             modifier = Modifier
-                .weight(weight = 1.0F)
-                .aspectRatio(ratio = 1.0F)
-                .clip(shape = CircleShape)
-                .border(
-                    width = 0.4.dp,
-                    color = MaterialTheme.colorScheme.error,
-                    shape = CircleShape
-                ),
+                .fillMaxWidth()
+                .height(height = (thumbRadius * 2) + (thumbWidth * 2)),
             contentAlignment = Alignment.Center
         ) {
 
-            val diameter = constraints.maxWidth
-            var position by remember { mutableStateOf(value = Offset.Zero) }
-            val colorWheel = remember(key1 = diameter) { ColorWheel(diameter = diameter) }
-            var hasInput by remember { mutableStateOf(value = false) }
+            val panelWidth = constraints.maxWidth.toFloat()
 
-            val pointerInputModifier = Modifier.pointerInput(key1 = colorWheel) {
+            val currentThumbX = remember(currentHue, panelWidth, thumbRadiusPx) {
 
-                fun updateColorWheel(newPosition: Offset) {
+                val hueStart = currentHue.coerceIn(0F..360F) - (0F..360F).start
+                val hueRange = (0F..360F).endInclusive - (0F..360F).start
+                val normalizedHue = hueStart / hueRange
+                val hueSliderWidth = panelWidth - (2 * thumbRadiusPx)
 
-                    val newColor = colorWheel.colorForPosition(position = newPosition)
+                (normalizedHue * hueSliderWidth) + thumbRadiusPx
+            }
 
-                    when {
 
-                        newColor.isSpecified -> {
+            val dragPointerInput = Modifier.pointerInput(
+                panelWidth,
+                thumbRadiusPx,
+                onHueChanged
+            ) {
 
-                            position = newPosition
-                            selectedColor = newColor
-                            onColorChange(selectedColor)
+                detectDragGestures { change, _ ->
+
+                    val newX = change.position.x.coerceIn(
+                        range = thumbRadiusPx..panelWidth - thumbRadiusPx
+                    )
+
+                    val minHue = (0F..360F).start
+                    val maxHue = (0F..360F).endInclusive
+                    val sliderWidth = panelWidth - (2 * thumbRadiusPx)
+                    val normalizedPosition = (newX - thumbRadiusPx) / sliderWidth
+                    val newValue = minHue + (normalizedPosition * (maxHue - minHue))
+
+                    onHueChanged(newValue.coerceIn(range = 0F..360F))
+                    change.consume()
+                }
+            }
+
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(dragPointerInput),
+                contentDescription = "Hue Panel"
+            ) {
+
+                val centerY = size.height / 2F
+                val trackStartX = thumbRadiusPx
+                val trackEndX = size.width - thumbRadiusPx
+                val cornerRadius = 4.dp.toPx()
+
+                drawRoundRect(
+                    topLeft = Offset(trackStartX, centerY - (trackHeightPx / 2)),
+                    size = Size(width = trackEndX - trackStartX, height = trackHeightPx),
+                    brush = Brush.horizontalGradient(colors = hueColors),
+                    cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius)
+                )
+
+                drawRoundRect(
+                    topLeft = Offset(trackStartX, centerY - (trackHeightPx / 2)),
+                    size = Size(width = trackEndX - trackStartX, height = trackHeightPx),
+                    color = panelBorderColor,
+                    cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius),
+                    style = Stroke(width = 0.6.dp.toPx())
+                )
+
+                val thumbPosition = Offset(currentThumbX, centerY)
+
+                drawDragHandle(
+                    position = thumbPosition,
+                    radius = thumbRadius,
+                    color = thumbColor,
+                    width = thumbWidth
+                )
+            }
+        }
+    }
+}
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@Composable
+private fun AlphaPanel(
+    modifier: Modifier = Modifier,
+    currentAlpha: Float,
+    baseColor: Color,
+    onAlphaChanged: (Float) -> Unit
+) {
+
+    val density = LocalDensity.current
+
+    val thumbColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val panelBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.65F)
+
+    val trackHeight = 32.dp
+    val thumbRadius = trackHeight / 2
+    val thumbWidth = 2.4.dp
+
+    val trackHeightPx = with(density) { trackHeight.toPx() }
+    val thumbRadiusPx = with(density) { thumbRadius.toPx() }
+
+    val cellColorLight = Color.White
+    val cellColorDark = Color.DarkGray
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(space = 12.dp)
+    ) {
+
+        Text(
+            text = "Alpha : ${(currentAlpha * 100).toInt()}%",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height = (thumbRadius * 2) + (thumbWidth * 2)),
+            contentAlignment = Alignment.Center
+        ) {
+
+            val panelWidth = constraints.maxWidth.toFloat()
+
+            val currentThumbX = remember(currentAlpha, panelWidth, thumbRadiusPx) {
+
+                val alphaStart = currentAlpha.coerceIn(0F..1F) - (0F..1F).start
+                val alphaRange = (0F..1F).endInclusive - (0F..1F).start
+                val normalizedAlpha = alphaStart / alphaRange
+                val alphaSliderWidth = panelWidth - (2 * thumbRadiusPx)
+
+                (normalizedAlpha * alphaSliderWidth) + thumbRadiusPx
+            }
+
+            val dragPointerInput = Modifier.pointerInput(panelWidth, thumbRadiusPx) {
+
+                detectDragGestures { change, _ ->
+
+                    val newX = change.position.x.coerceIn(
+                        range = thumbRadiusPx..panelWidth - thumbRadiusPx
+                    )
+
+                    val minAlpha = (0F..1F).start
+                    val maxAlpha = (0F..1F).endInclusive
+                    val sliderWidth = panelWidth - (2 * thumbRadiusPx)
+                    val normalizedPosition = (newX - thumbRadiusPx) / sliderWidth
+                    val newValue = minAlpha + (normalizedPosition * (maxAlpha - minAlpha))
+
+                    onAlphaChanged(newValue.coerceIn(range = 0F..1F))
+                    change.consume()
+                }
+            }
+
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(dragPointerInput),
+                contentDescription = "Alpha Panel"
+            ) {
+
+                val trackActualDisplayHeight = trackHeightPx.coerceAtMost(size.height)
+                val trackTopY = (size.height - trackActualDisplayHeight) / 2F
+                val trackBottomY = trackTopY + trackActualDisplayHeight
+
+                val trackStartX = thumbRadiusPx
+                val trackEndX = size.width - thumbRadiusPx
+                val trackWidth = trackEndX - trackStartX
+                val cornerRadius = 4.dp.toPx()
+                val checkerSizePx = trackActualDisplayHeight / 3F
+
+                val clipPath = Path().apply {
+                    addRoundRect(
+                        RoundRect(
+                            rect = Rect(
+                                left = trackStartX,
+                                top = trackTopY,
+                                right = trackEndX,
+                                bottom = trackBottomY
+                            ),
+                            cornerRadius = CornerRadius(cornerRadius, cornerRadius)
+                        )
+                    )
+                }
+
+                clipPath(path = clipPath) {
+
+                    val rowCount = 3
+                    val columnCount = (trackWidth / checkerSizePx).toInt() + 2
+
+                    for (row in 0 until rowCount) {
+
+                        for (col in 0 until columnCount) {
+
+                            val rectLeft = trackStartX + col * checkerSizePx
+                            val rectTop = trackTopY + row * checkerSizePx
+
+
+                            if (rectLeft < trackEndX && rectTop < trackBottomY) {
+
+                                val cellColor = when {
+
+                                    (row + col) % 2 == 0 -> cellColorLight
+                                    else -> cellColorDark
+                                }
+
+                                drawRect(
+                                    color = cellColor,
+                                    topLeft = Offset(rectLeft, rectTop),
+                                    size = Size(checkerSizePx, checkerSizePx)
+                                )
+                            }
                         }
                     }
                 }
 
-                awaitEachGesture {
-
-                    val down = awaitFirstDown()
-
-                    hasInput = true
-                    updateColorWheel(newPosition = down.position)
-
-                    drag(pointerId = down.id) { change ->
-
-                        change.consume()
-                        updateColorWheel(change.position)
-                    }
-
-                    hasInput = false
-                }
-            }
-
-            Box(modifier = Modifier.matchParentSize()) {
-
-                Image(
-                    modifier = pointerInputModifier,
-                    bitmap = colorWheel.image,
-                    contentDescription = "Color Wheel"
+                drawRoundRect(
+                    topLeft = Offset(trackStartX, trackTopY),
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            baseColor.copy(alpha = 0F),
+                            baseColor.copy(alpha = 1F)
+                        )
+                    ),
+                    size = Size(trackWidth, trackActualDisplayHeight),
+                    cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius)
                 )
 
-                Canvas(
-                    modifier = Modifier.matchParentSize(),
-                    contentDescription = "Color Selection Point"
-                ) {
-
-                    drawCircle(
-                        color = contentColor,
-                        radius = 12.dp.toPx(),
-                        center = position,
-                        style = Stroke(width = 2.dp.toPx())
-                    )
-
-                    drawCircle(
-                        color = contentColor,
-                        radius = 2.4.dp.toPx(),
-                        center = position,
-                        style = Fill
-                    )
-                }
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .align(alignment = Alignment.End)
-                .padding(all = 16.dp)
-                .size(width = 48.dp, height = 32.dp)
-                .clip(shape = MaterialTheme.shapes.small)
-                .border(
-                    width = 2.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = MaterialTheme.shapes.small
+                drawRoundRect(
+                    topLeft = Offset(trackStartX, trackTopY),
+                    size = Size(trackWidth, trackActualDisplayHeight),
+                    color = panelBorderColor,
+                    cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius),
+                    style = Stroke(width = 0.6.dp.toPx())
                 )
-                .background(color = selectedColor)
-        )
 
-        AlphaPanel(isAlphaPanel = isAlphaPanel, selectedColor = selectedColor) { alpha ->
+                val thumbPosition = Offset(currentThumbX, size.height / 2F)
 
-            selectedColor = selectedColor.copy(alpha = alpha)
-            onColorChange(selectedColor)
-        }
-    }
-}
-
-private class ColorWheel(diameter: Int) {
-
-    private val colorList = persistentListOf(
-        Color.Red,
-        Color.Magenta,
-        Color.Blue,
-        Color.Black,
-        Color.Green,
-        Color.Yellow,
-        Color.White,
-        Color.Red
-    )
-
-    private val radius = diameter / 2f
-
-    private val sweepGradient = SweepGradientShader(
-        colors = colorList,
-        colorStops = null,
-        center = Offset(x = radius, y = radius)
-    )
-
-    val image = ImageBitmap(width = diameter, height = diameter).also { imageBitmap ->
-
-        val canvas = Canvas(image = imageBitmap)
-        val center = Offset(x = radius, y = radius)
-        val paint = Paint().apply { shader = sweepGradient }
-
-        canvas.drawCircle(center = center, radius = radius, paint = paint)
-    }
-}
-
-private fun ColorWheel.colorForPosition(position: Offset): Color {
-
-    val x = position.x.toInt().coerceAtLeast(minimumValue = 0)
-    val y = position.y.toInt().coerceAtLeast(minimumValue = 0)
-
-    with(receiver = image.toPixelMap()) {
-
-        return when {
-
-            x >= width || y >= height -> Color.Unspecified
-            else -> this[x, y].takeIf { color -> color.alpha == 1f } ?: Color.Unspecified
+                drawDragHandle(
+                    position = thumbPosition,
+                    radius = thumbRadius,
+                    color = thumbColor,
+                    width = thumbWidth
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun AlphaPanel(
-    isAlphaPanel: Boolean,
-    selectedColor: Color,
-    onAlphaLevel: (alpha: Float) -> Unit
+private fun ColorPreview(
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified
 ) {
 
-    val contentColor = LocalContentColor.current
-    val coroutineScope = rememberCoroutineScope()
-    val interactionSource = remember { MutableInteractionSource() }
-    val visibleState = remember { MutableTransitionState(initialState = isAlphaPanel) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
 
-    var pressOffset by remember { mutableStateOf(value = IntOffset.Zero) }
-    var selectedAlpha by remember { mutableFloatStateOf(value = 1f) }
-
-    AnimatedVisibility(visibleState = visibleState) {
-
-        Canvas(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(height = 32.dp)
-                .clip(shape = MaterialTheme.shapes.extraSmall)
+        Box(
+            modifier = modifier
+                .size(size = 64.dp)
                 .border(
-                    width = 0.4.dp,
-                    color = MaterialTheme.colorScheme.error,
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = MaterialTheme.shapes.extraSmall
                 )
-                .emitDragGesture(interactionSource = interactionSource)
-                .onPlaced(
-                    onPlaced = { layoutCoordinate ->
+                .clip(shape = MaterialTheme.shapes.extraSmall)
+                .background(color = color)
+        )
 
-                        pressOffset = IntOffset(
-                            x = layoutCoordinate.size.width,
-                            y = layoutCoordinate.size.height
-                        )
-                    }
-                )
-                .padding(all = 2.dp),
-            contentDescription = "Alpha Panel"
-        ) {
-
-            val cellCount = 3
-            val drawScopeSize = size
-            val boxSize = size.height / cellCount
-            val bitmap = createBitmap(width = size.width.toInt(), height = size.height.toInt())
-            val huePanel = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
-
-            (0 .. (size.width / boxSize).toInt()).forEach { boxOne ->
-
-                (0 until cellCount).forEach { boxTwo ->
-
-                    drawRect(
-                        color = when ((boxOne + boxTwo) % 2 == 0) {
-
-                            true -> selectedColor.copy(alpha = selectedAlpha)
-                            false -> Color.White
-                        },
-                        topLeft = Offset(x = boxOne * boxSize, y = boxTwo * boxSize),
-                        size = Size(width = boxSize, height = boxSize)
-                    )
-                }
-            }
-
-            drawBitmap(bitmap = bitmap, panel = huePanel)
-
-            coroutineScope.pressCollector(interactionSource = interactionSource) { offset ->
-
-                val pressPosition = offset.x.coerceIn(range = 0f..drawScopeSize.width)
-
-                val alpha = pointAlpha(
-                    pointX = pressPosition,
-                    panelWidth = huePanel.width(),
-                    panelLeft = huePanel.left,
-                    panelRight = huePanel.right
-                )
-
-                pressOffset = IntOffset(x = pressPosition.toInt(), y = 0)
-                selectedAlpha = alpha
-                onAlphaLevel(selectedAlpha)
-            }
-
-            drawCircle(
-                color = contentColor,
-                radius = size.height / 2,
-                center = pressOffset.toOffset().copy(y = size.height / 2),
-                style = Stroke(width = 2.dp.toPx())
-            )
-
-            drawCircle(
-                color = contentColor,
-                radius = 2.4.dp.toPx(),
-                center = pressOffset.toOffset().copy(y = size.height / 2),
-                style = Fill
-            )
-        }
-    }
-}
-
-private fun DrawScope.drawBitmap(bitmap: Bitmap, panel: RectF) {
-
-    drawIntoCanvas { canvas ->
-
-        canvas.nativeCanvas.drawBitmap(bitmap, null, panel.toRect(), null)
-    }
-}
-
-@SuppressLint("ModifierFactoryUnreferencedReceiver")
-private fun Modifier.emitDragGesture(
-    interactionSource: MutableInteractionSource
-): Modifier = composed {
-
-    val coroutineScope = rememberCoroutineScope()
-
-    pointerInput(key1 = Unit) {
-
-        detectDragGestures { inputChange: PointerInputChange, dragAmount: Offset ->
-
-            coroutineScope.launch {
-
-                interactionSource.emit(
-                    interaction = PressInteraction.Press(pressPosition = inputChange.position)
-                )
-            }
-        }
-    }.clickable(interactionSource = interactionSource, indication = null) {}
-}
-
-private fun pointAlpha(
-    pointX: Float,
-    panelWidth: Float,
-    panelLeft: Float,
-    panelRight: Float
-): Float {
-
-    val x = when {
-
-        pointX < panelLeft -> 0.0f
-        pointX > panelRight -> panelWidth
-        else -> pointX - panelLeft
+        ColorInfoPreview(
+            modifier = Modifier,
+            color = color
+        )
     }
 
-    return x * 1.0f / panelWidth
+
 }
 
-private fun CoroutineScope.pressCollector(
-    interactionSource: InteractionSource,
-    onOffset: (offset: Offset) -> Unit
+@Composable
+private fun ColorInfoPreview(
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified
 ) {
 
-    launch {
+    val hexColorInfo by remember(color) {
+        derivedStateOf { Pair(first = "HEX", second = EmptyFormat.toColorHex(color = color)) }
+    }
 
-        interactionSource.interactions.collect { interaction: Interaction ->
-
-            (interaction as? PressInteraction.Press)?.pressPosition?.let(onOffset)
+    val argbColorInfo by remember(color) {
+        derivedStateOf {
+            Pair(
+                first = "ARGB",
+                second = "${(color.alpha * 255).toInt()}    ${(color.red * 255).toInt()}    ${
+                    (color.green * 255).toInt()
+                }   ${(color.blue * 255).toInt()}"
+            )
         }
     }
+
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+    ) {
+
+        ColorInfoItem(modifier = Modifier.fillMaxWidth(), infoItem = argbColorInfo)
+        ColorInfoItem(modifier = Modifier.fillMaxWidth(), infoItem = hexColorInfo)
+    }
+}
+
+@Composable
+private fun ColorInfoItem(modifier: Modifier = Modifier, infoItem: Pair<String, String>) {
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Text(
+            modifier = Modifier.weight(weight = 0.35F),
+            text = infoItem.first,
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Text(
+            text = ":",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Text(
+            modifier = Modifier.weight(weight = 1.60F),
+            text = infoItem.second,
+            textAlign = TextAlign.Start,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+private fun DrawScope.drawDragHandle(
+    position: Offset,
+    radius: Dp,
+    color: Color,
+    width: Dp,
+) {
+
+    val stroke = Stroke(width = width.toPx())
+
+    drawCircle(center = position, radius = radius.toPx(), style = stroke, color = color)
+    drawCircle(center = position, radius = width.toPx(), color = color)
+}
+
+private fun Color.toHslComponents(): FloatArray {
+
+    val maxColorComponent = maxOf(red, green, blue)
+    val minColorComponent = minOf(red, green, blue)
+    val colorComponentDifference = maxColorComponent - minColorComponent
+
+    var hue = 0F
+    val saturation: Float
+    val lightness = (maxColorComponent + minColorComponent) / 2F
+
+    if (colorComponentDifference == 0F) {
+
+        saturation = 0F
+    } else {
+
+        saturation = if (lightness > 0.5F) {
+
+            colorComponentDifference / (2F - maxColorComponent - minColorComponent)
+        } else {
+
+            colorComponentDifference / (maxColorComponent + minColorComponent)
+        }
+
+        hue = when (maxColorComponent) {
+
+            red -> (green - blue) / colorComponentDifference + (if (green < blue) 6F else 0F)
+            green -> (blue - red) / colorComponentDifference + 2F
+            else -> (red - green) / colorComponentDifference + 4F
+        }
+
+        hue /= 6F
+    }
+
+    return floatArrayOf(hue * 360F, saturation, lightness)
 }

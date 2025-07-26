@@ -8,14 +8,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Label
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
@@ -31,7 +28,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -60,10 +56,6 @@ fun SliderPreference(
     isValueVisible: Boolean = false,
     decimalFraction: Int = 1,
     sliderColors: SliderColors = SliderDefaults.colors(),
-    thumbSize: DpSize = DpSize(width = 16.0.dp, height = 16.0.dp),
-    thumbTrackGapSize: Dp = 4.dp,
-    trackInsideCornerSize: Dp = 2.dp,
-    trackThickness: Dp = 4.dp,
     @FloatRange(from = 0.0, to = 1.0)
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
@@ -109,8 +101,8 @@ fun SliderPreference(
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(space = 0.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(space = 0.dp)
             ) {
 
                 Text(
@@ -138,45 +130,18 @@ fun SliderPreference(
                     interactionSource = sliderInteractionSource,
                     thumb = { sliderState: SliderState ->
 
-                        Label(
+                        SliderDefaults.Thumb(
                             interactionSource = sliderInteractionSource,
-                            label = {
-
-                                RichTooltip {
-
-                                    Text(
-                                        text = "${
-                                            EmptyFormat.toRoundedDecimal(
-                                                decimal = getPosition,
-                                                fraction = decimalFraction
-                                            )
-                                        }",
-                                        textAlign = TextAlign.Center,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                            }
-                        ) {
-
-                            SliderDefaults.Thumb(
-                                interactionSource = sliderInteractionSource,
-                                thumbSize = thumbSize,
-                                colors = sliderColors
-                            )
-                        }
+                            colors = sliderColors
+                        )
                     },
                     track = { sliderState: SliderState ->
 
                         SliderDefaults.Track(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(height = trackThickness),
+                            modifier = Modifier.fillMaxWidth(),
                             sliderState = sliderState,
-                            colors = sliderColors,
-                            thumbTrackGapSize = thumbTrackGapSize,
-                            trackInsideCornerSize = trackInsideCornerSize
+                            thumbTrackGapSize = 0.dp,
+                            colors = sliderColors
                         )
                     }
                 )

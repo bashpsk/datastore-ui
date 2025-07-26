@@ -4,8 +4,8 @@ import androidx.annotation.FloatRange
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
@@ -76,7 +76,7 @@ fun SwitchPreference(
                         modifier = Modifier.size(size = SwitchDefaults.IconSize),
                         imageVector = when (getSwitchState) {
 
-                            true -> Icons.Filled.Check
+                            true -> Icons.Filled.Done
                             false -> Icons.Filled.Close
                         },
                         contentDescription = "Switch Thumb"
