@@ -1,6 +1,4 @@
-package io.bashpsk.datastoredemo.settings
-
-import io.bashpsk.datastoredemo.R
+package io.bashpsk.datastoredemo
 
 enum class AppFont(val resId: Int) {
 

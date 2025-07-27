@@ -1,4 +1,4 @@
-package io.bashpsk.datastoredemo.ui.screen
+package io.bashpsk.datastoredemo
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding

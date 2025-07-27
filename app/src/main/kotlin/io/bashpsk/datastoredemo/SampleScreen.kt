@@ -1,4 +1,4 @@
-package io.bashpsk.datastoredemo.ui.screen
+package io.bashpsk.datastoredemo
 
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -60,8 +60,6 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.bashpsk.datastoredemo.settings.AppTheme
-import io.bashpsk.datastoredemo.settings.fontEntities
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
 import io.bashpsk.datastoreui.extension.toReverseMap
@@ -301,7 +299,32 @@ fun SampleScreen() {
                             contentDescription = ""
                         )
                     },
-                    isAlphaPanel = { true }
+                    enableAlphaPanel = { true }
+                )
+            }
+
+            item {
+
+                ColorPickPreference(
+                    modifier = Modifier.animateItem(
+                        fadeInSpec = tween(durationMillis = 250),
+                        fadeOutSpec = tween(durationMillis = 100),
+                        placementSpec = spring(
+                            stiffness = Spring.StiffnessLow,
+                            dampingRatio = Spring.DampingRatioMediumBouncy
+                        )
+                    ),
+                    key = { intPreferencesKey("COLOR-PICK-PREFERENCE-TWO") },
+                    title = { "Color Picker Preference Two" },
+                    summary = { "Select a color for color pick preference two." },
+                    leadingContent = {
+
+                        Icon(
+                            imageVector = Icons.Filled.Colorize,
+                            contentDescription = ""
+                        )
+                    },
+                    enableResetButton = { true }
                 )
             }
 
@@ -358,7 +381,8 @@ fun SampleScreen() {
                             imageVector = Icons.Filled.FontDownload,
                             contentDescription = ""
                         )
-                    }
+                    },
+                    enableResetButton = { true }
                 )
             }
 

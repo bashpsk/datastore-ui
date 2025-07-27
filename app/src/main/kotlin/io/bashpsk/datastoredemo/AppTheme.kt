@@ -1,4 +1,4 @@
-package io.bashpsk.datastoredemo.settings
+package io.bashpsk.datastoredemo
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable

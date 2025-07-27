@@ -26,8 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.bashpsk.datastoreui.color.ColorPickerDialog
+import io.bashpsk.datastoreui.color.rememberColorPickerState
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
+import io.bashpsk.datastoreui.extension.resetPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
@@ -45,31 +47,55 @@ fun ColorPickPreference(
     colors: ListItemColors = ListItemDefaults.colors(),
     tonalElevation: Dp = ListItemDefaults.Elevation,
     shadowElevation: Dp = ListItemDefaults.Elevation,
-    isAlphaPanel: () -> Boolean = { false },
+    enableAlphaPanel: () -> Boolean = { false },
     @FloatRange(from = 0.0, to = 1.0)
-    summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
+    summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA,
+    enableResetButton: () -> Boolean = { false },
 ) {
 
     val dataStore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(false) }
+    val colorPickerState = rememberColorPickerState(enableAlphaPanel = enableAlphaPanel())
 
     val getColorArgb by dataStore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
 
-    ColorPickerDialog(
-        dialogVisibleState = dialogVisibleState,
-        isAlphaPanel = isAlphaPanel(),
-        onSelectedColor = { color ->
+    when (enableResetButton()) {
 
-            coroutineScope.launch(context = Dispatchers.IO) {
+        true -> ColorPickerDialog(
+            dialogVisibleState = dialogVisibleState,
+            state = colorPickerState,
+            onResetClick = {
 
-                dataStore.setPreference(key = key(), value = color.toArgb())
+                coroutineScope.launch(context = Dispatchers.IO) {
+
+                    dataStore.resetPreference(key = key())
+                }
+            },
+            onSelectedColor = { color ->
+
+                coroutineScope.launch(context = Dispatchers.IO) {
+
+                    dataStore.setPreference(key = key(), value = color.toArgb())
+                }
             }
-        }
-    )
+        )
+
+        false -> ColorPickerDialog(
+            dialogVisibleState = dialogVisibleState,
+            state = colorPickerState,
+            onSelectedColor = { color ->
+
+                coroutineScope.launch(context = Dispatchers.IO) {
+
+                    dataStore.setPreference(key = key(), value = color.toArgb())
+                }
+            }
+        )
+    }
 
     ListItem(
         modifier = modifier

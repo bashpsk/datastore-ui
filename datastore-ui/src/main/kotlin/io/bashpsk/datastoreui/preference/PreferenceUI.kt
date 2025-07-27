@@ -2,10 +2,18 @@ package io.bashpsk.datastoreui.preference
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 
@@ -80,5 +89,89 @@ internal inline fun PreferenceSummary(
             style = MaterialTheme.typography.labelSmall,
             fontFamily = fontFamily
         )
+    }
+}
+
+@Composable
+internal fun PreferenceDialogButton(
+    modifier: Modifier = Modifier,
+    horiArrangement: Arrangement.Horizontal = Arrangement.End,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    onDoneClick: () -> Unit
+) {
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = horiArrangement,
+        verticalAlignment = verticalAlignment
+    ) {
+
+        Button(onClick = onDoneClick) {
+
+            Icon(
+                imageVector = Icons.Filled.Done,
+                contentDescription = "Done"
+            )
+
+            Spacer(modifier = Modifier.width(width = 2.dp))
+
+            Text(
+                text = "Done",
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+internal fun PreferenceDialogButton(
+    modifier: Modifier = Modifier,
+    horiArrangement: Arrangement.Horizontal = Arrangement.SpaceAround,
+    verticalAlignment: Alignment.Vertical = Alignment.CenterVertically,
+    onDoneClick: () -> Unit,
+    onResetClick: () -> Unit
+) {
+
+    Row(
+        modifier = modifier,
+        horizontalArrangement = horiArrangement,
+        verticalAlignment = verticalAlignment
+    ) {
+
+        OutlinedButton (onClick = onResetClick) {
+
+            Icon(
+                imageVector = Icons.Filled.Restore,
+                contentDescription = "Reset"
+            )
+
+            Spacer(modifier = Modifier.width(width = 2.dp))
+
+            Text(
+                text = "Reset",
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        Button(onClick = onDoneClick) {
+
+            Icon(
+                imageVector = Icons.Filled.Done,
+                contentDescription = "Done"
+            )
+
+            Spacer(modifier = Modifier.width(width = 2.dp))
+
+            Text(
+                text = "Done",
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }

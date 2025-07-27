@@ -1,4 +1,4 @@
-package io.bashpsk.datastoredemo.datastore
+package io.bashpsk.datastoredemo
 
 import android.content.Context
 import androidx.datastore.preferences.preferencesDataStore

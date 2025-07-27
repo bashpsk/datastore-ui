@@ -6,21 +6,16 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemColors
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -33,10 +28,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.datastore.preferences.core.Preferences
 import io.bashpsk.datastoreui.extension.LocalDatastore
+import io.bashpsk.datastoreui.extension.resetPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
@@ -58,7 +53,8 @@ fun TextFieldPreference(
     textFieldValue: TextFieldValue,
     textFieldContent: @Composable (() -> Unit) = {},
     @FloatRange(from = 0.0, 1.0)
-    summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
+    summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA,
+    enableResetButton: () -> Boolean = { false }
 ) {
 
     val dataStore = LocalDatastore.current
@@ -113,57 +109,39 @@ fun TextFieldPreference(
             text = textFieldContent,
             confirmButton = {
 
-                Button(
-                    onClick = {
+                when (enableResetButton()) {
 
-                        coroutineScope.launch(context = Dispatchers.IO) {
+                    true -> PreferenceDialogButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDoneClick = {
 
-                            dataStore.setPreference(
-                                key = key(),
-                                value = textFieldValue.text
-                            )
+                            coroutineScope.launch(context = Dispatchers.IO) {
+
+                                dataStore.setPreference(key = key(), value = textFieldValue.text)
+                            }
+
+                            dialogVisibleState.targetState = false
+                        },
+                        onResetClick = {
+
+                            coroutineScope.launch(context = Dispatchers.IO) {
+
+                                dataStore.resetPreference(key = key())
+                            }
                         }
-
-                        dialogVisibleState.targetState = false
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "Done"
                     )
 
-                    Spacer(modifier = Modifier.width(width = 2.dp))
+                    false -> PreferenceDialogButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDoneClick = {
 
-                    Text(
-                        text = "Done",
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            },
-            dismissButton = {
+                            coroutineScope.launch(context = Dispatchers.IO) {
 
-                OutlinedButton(
-                    onClick = {
+                                dataStore.setPreference(key = key(), value = textFieldValue.text)
+                            }
 
-                        dialogVisibleState.targetState = false
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Cancel"
-                    )
-
-                    Spacer(modifier = Modifier.width(width = 2.dp))
-
-                    Text(
-                        text = "Cancel",
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                            dialogVisibleState.targetState = false
+                        }
                     )
                 }
             }
@@ -220,7 +198,8 @@ fun <V> TextFieldPreference(
     textFieldValue: V,
     textFieldContent: @Composable (() -> Unit) = {},
     @FloatRange(from = 0.0, to = 1.0)
-    summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
+    summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA,
+    enableResetButton: () -> Boolean = { false }
 ) {
 
     val dataStore = LocalDatastore.current
@@ -275,54 +254,39 @@ fun <V> TextFieldPreference(
             text = textFieldContent,
             confirmButton = {
 
-                Button(
-                    onClick = {
+                when (enableResetButton()) {
 
-                        coroutineScope.launch(context = Dispatchers.IO) {
+                    true -> PreferenceDialogButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDoneClick = {
 
-                            dataStore.setPreference(key = key(), value = textFieldValue)
+                            coroutineScope.launch(context = Dispatchers.IO) {
+
+                                dataStore.setPreference(key = key(), value = textFieldValue)
+                            }
+
+                            dialogVisibleState.targetState = false
+                        },
+                        onResetClick = {
+
+                            coroutineScope.launch(context = Dispatchers.IO) {
+
+                                dataStore.resetPreference(key = key())
+                            }
                         }
-
-                        dialogVisibleState.targetState = false
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "Done"
                     )
 
-                    Spacer(modifier = Modifier.width(width = 2.dp))
+                    false -> PreferenceDialogButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDoneClick = {
 
-                    Text(
-                        text = "Done",
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            },
-            dismissButton = {
+                            coroutineScope.launch(context = Dispatchers.IO) {
 
-                OutlinedButton(
-                    onClick = {
+                                dataStore.setPreference(key = key(), value = textFieldValue)
+                            }
 
-                        dialogVisibleState.targetState = false
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Cancel"
-                    )
-
-                    Spacer(modifier = Modifier.width(width = 2.dp))
-
-                    Text(
-                        text = "Cancel",
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                            dialogVisibleState.targetState = false
+                        }
                     )
                 }
             }

@@ -6,19 +6,15 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +39,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.bashpsk.datastoreui.extension.LocalDatastore
 import io.bashpsk.datastoreui.extension.getPreference
+import io.bashpsk.datastoreui.extension.resetPreference
 import io.bashpsk.datastoreui.extension.setPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,7 +56,8 @@ fun <K, V> ListOptionMenuPreference(
     colors: MenuItemColors = MenuDefaults.itemColors(),
     isDismissOnBackPress: Boolean = true,
     isDismissOnClickOutside: Boolean = true,
-    onMenuDismiss: () -> Unit = {}
+    onMenuDismiss: () -> Unit = {},
+    enableResetButton: () -> Boolean = { false }
 ) {
 
     val dataStore = LocalDatastore.current
@@ -174,26 +172,31 @@ fun <K, V> ListOptionMenuPreference(
             },
             confirmButton = {
 
-                Button(
-                    onClick = {
+                when (enableResetButton()) {
 
-                        dialogVisibleState.targetState = false
-                        onMenuDismiss()
-                    }
-                ) {
+                    true -> PreferenceDialogButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDoneClick = {
 
-                    Icon(
-                        imageVector = Icons.Filled.Done,
-                        contentDescription = "Done"
+                            dialogVisibleState.targetState = false
+                            onMenuDismiss()
+                        },
+                        onResetClick = {
+
+                            coroutineScope.launch(context = Dispatchers.IO) {
+
+                                dataStore.resetPreference(key = key())
+                            }
+                        }
                     )
 
-                    Spacer(modifier = Modifier.width(width = 2.dp))
+                    false -> PreferenceDialogButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        onDoneClick = {
 
-                    Text(
-                        text = "Done",
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                            dialogVisibleState.targetState = false
+                            onMenuDismiss()
+                        }
                     )
                 }
             }

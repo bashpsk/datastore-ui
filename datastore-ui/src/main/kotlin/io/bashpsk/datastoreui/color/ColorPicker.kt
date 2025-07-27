@@ -20,13 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,65 +44,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.bashpsk.emptyformat.EmptyFormat
-
-@Composable
-fun rememberColorPickerState(
-    initialColor: Color = Color.Black,
-    enableAlphaPanel: Boolean = false
-): ColorPickerState {
-
-    return remember(enableAlphaPanel, initialColor) {
-        ColorPickerState(initialColor = initialColor, isAlphaPanelEnabled = enableAlphaPanel)
-    }
-}
-
-@Stable
-class ColorPickerState(initialColor: Color, val isAlphaPanelEnabled: Boolean = false) {
-
-    var selectedColor by mutableStateOf(initialColor)
-        private set
-
-    var hueValue by mutableFloatStateOf(0F)
-        private set
-
-    var saturationValue by mutableFloatStateOf(0F)
-        private set
-
-    var lightnessValue by mutableFloatStateOf(0F)
-        private set
-
-    var alphaValue by mutableFloatStateOf(initialColor.alpha)
-        private set
-
-    init {
-
-        val hslComponents = initialColor.toHslComponents()
-
-        hueValue = hslComponents[0]
-        saturationValue = hslComponents[1]
-        lightnessValue = hslComponents[2]
-    }
-
-    fun updateColor(newColor: Color) {
-
-        val hslComponents = newColor.toHslComponents()
-
-        selectedColor = newColor
-        hueValue = hslComponents[0]
-        saturationValue = hslComponents[1]
-        lightnessValue = hslComponents[2]
-        alphaValue = newColor.alpha
-    }
-
-    fun updateHslA(hue: Float, saturation: Float, lightness: Float, alpha: Float) {
-
-        hueValue = hue.coerceIn(range = 0F..360F)
-        saturationValue = saturation.coerceIn(range = 0F..1F)
-        lightnessValue = lightness.coerceIn(range = 0F..1F)
-        alphaValue = alpha.coerceIn(range = 0F..1F)
-        selectedColor = Color.hsl(hueValue, saturationValue, lightnessValue, alphaValue)
-    }
-}
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -210,7 +147,7 @@ private fun SaturationLightnessPanel(
         val thumbRadius = 10.dp
         val thumbWidth = 2.4.dp
 
-        val tapPointerInput = Modifier.pointerInput(panelWidth, panelHeight, hueValue) {
+        val tapPointerInput = Modifier.pointerInput(panelWidth, panelHeight) {
 
             detectTapGestures(
                 onPress = { offset ->
@@ -223,7 +160,7 @@ private fun SaturationLightnessPanel(
             )
         }
 
-        val dragPointerInput = Modifier.pointerInput(panelWidth, panelHeight, hueValue) {
+        val dragPointerInput = Modifier.pointerInput(panelWidth, panelHeight) {
 
             detectDragGestures { change, _ ->
 
@@ -343,11 +280,7 @@ private fun HuePanel(
             }
 
 
-            val dragPointerInput = Modifier.pointerInput(
-                panelWidth,
-                thumbRadiusPx,
-                onHueChanged
-            ) {
+            val dragPointerInput = Modifier.pointerInput(panelWidth, thumbRadiusPx) {
 
                 detectDragGestures { change, _ ->
 
@@ -428,7 +361,7 @@ private fun AlphaPanel(
     val thumbRadiusPx = with(density) { thumbRadius.toPx() }
 
     val cellColorLight = Color.White
-    val cellColorDark = Color.DarkGray
+    val cellColorDark = Color.LightGray
 
     Column(
         modifier = modifier,
@@ -489,28 +422,29 @@ private fun AlphaPanel(
                 contentDescription = "Alpha Panel"
             ) {
 
-                val trackActualDisplayHeight = trackHeightPx.coerceAtMost(size.height)
-                val trackTopY = (size.height - trackActualDisplayHeight) / 2F
-                val trackBottomY = trackTopY + trackActualDisplayHeight
+                val trackActualHeight = trackHeightPx.coerceAtMost(maximumValue = size.height)
+                val trackTopY = (size.height - trackActualHeight) / 2F
+                val trackBottomY = trackTopY + trackActualHeight
 
                 val trackStartX = thumbRadiusPx
                 val trackEndX = size.width - thumbRadiusPx
                 val trackWidth = trackEndX - trackStartX
                 val cornerRadius = 4.dp.toPx()
-                val checkerSizePx = trackActualDisplayHeight / 3F
+                val checkerSizePx = trackActualHeight / 3F
 
                 val clipPath = Path().apply {
-                    addRoundRect(
-                        RoundRect(
-                            rect = Rect(
-                                left = trackStartX,
-                                top = trackTopY,
-                                right = trackEndX,
-                                bottom = trackBottomY
-                            ),
-                            cornerRadius = CornerRadius(cornerRadius, cornerRadius)
-                        )
+
+                    val cellRect = RoundRect(
+                        rect = Rect(
+                            left = trackStartX,
+                            top = trackTopY,
+                            right = trackEndX,
+                            bottom = trackBottomY
+                        ),
+                        cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius)
                     )
+
+                    addRoundRect(roundRect = cellRect)
                 }
 
                 clipPath(path = clipPath) {
@@ -518,26 +452,26 @@ private fun AlphaPanel(
                     val rowCount = 3
                     val columnCount = (trackWidth / checkerSizePx).toInt() + 2
 
-                    for (row in 0 until rowCount) {
+                    (0 until rowCount).forEach { rowIndex ->
 
-                        for (col in 0 until columnCount) {
+                        (0 until columnCount).forEach { columnIndex ->
 
-                            val rectLeft = trackStartX + col * checkerSizePx
-                            val rectTop = trackTopY + row * checkerSizePx
+                            val rectLeft = trackStartX + columnIndex * checkerSizePx
+                            val rectTop = trackTopY + rowIndex * checkerSizePx
 
 
                             if (rectLeft < trackEndX && rectTop < trackBottomY) {
 
                                 val cellColor = when {
 
-                                    (row + col) % 2 == 0 -> cellColorLight
+                                    (rowIndex + columnIndex) % 2 == 0 -> cellColorLight
                                     else -> cellColorDark
                                 }
 
                                 drawRect(
                                     color = cellColor,
                                     topLeft = Offset(rectLeft, rectTop),
-                                    size = Size(checkerSizePx, checkerSizePx)
+                                    size = Size(width = checkerSizePx, height = checkerSizePx)
                                 )
                             }
                         }
@@ -552,13 +486,13 @@ private fun AlphaPanel(
                             baseColor.copy(alpha = 1F)
                         )
                     ),
-                    size = Size(trackWidth, trackActualDisplayHeight),
+                    size = Size(width = trackWidth, height = trackActualHeight),
                     cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius)
                 )
 
                 drawRoundRect(
                     topLeft = Offset(trackStartX, trackTopY),
-                    size = Size(trackWidth, trackActualDisplayHeight),
+                    size = Size(width = trackWidth, height = trackActualHeight),
                     color = panelBorderColor,
                     cornerRadius = CornerRadius(x = cornerRadius, y = cornerRadius),
                     style = Stroke(width = 0.6.dp.toPx())
@@ -578,10 +512,7 @@ private fun AlphaPanel(
 }
 
 @Composable
-private fun ColorPreview(
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified
-) {
+private fun ColorPreview(modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
 
     Row(
         modifier = Modifier
@@ -613,10 +544,7 @@ private fun ColorPreview(
 }
 
 @Composable
-private fun ColorInfoPreview(
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified
-) {
+private fun ColorInfoPreview(modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
 
     val hexColorInfo by remember(color) {
         derivedStateOf { Pair(first = "HEX", second = EmptyFormat.toColorHex(color = color)) }
@@ -681,12 +609,7 @@ private fun ColorInfoItem(modifier: Modifier = Modifier, infoItem: Pair<String, 
     }
 }
 
-private fun DrawScope.drawDragHandle(
-    position: Offset,
-    radius: Dp,
-    color: Color,
-    width: Dp,
-) {
+private fun DrawScope.drawDragHandle(position: Offset, radius: Dp, color: Color, width: Dp) {
 
     val stroke = Stroke(width = width.toPx())
 
@@ -694,7 +617,7 @@ private fun DrawScope.drawDragHandle(
     drawCircle(center = position, radius = width.toPx(), color = color)
 }
 
-private fun Color.toHslComponents(): FloatArray {
+internal fun Color.toHslComponents(): FloatArray {
 
     val maxColorComponent = maxOf(red, green, blue)
     val minColorComponent = minOf(red, green, blue)
@@ -704,27 +627,34 @@ private fun Color.toHslComponents(): FloatArray {
     val saturation: Float
     val lightness = (maxColorComponent + minColorComponent) / 2F
 
-    if (colorComponentDifference == 0F) {
+    when (colorComponentDifference) {
 
-        saturation = 0F
-    } else {
+        0F -> saturation = 0F
 
-        saturation = if (lightness > 0.5F) {
+        else -> {
 
-            colorComponentDifference / (2F - maxColorComponent - minColorComponent)
-        } else {
+            saturation = when {
 
-            colorComponentDifference / (maxColorComponent + minColorComponent)
+                lightness > 0.5F -> {
+
+                    colorComponentDifference / (2F - maxColorComponent - minColorComponent)
+                }
+
+                else -> {
+
+                    colorComponentDifference / (maxColorComponent + minColorComponent)
+                }
+            }
+
+            hue = when (maxColorComponent) {
+
+                red -> (green - blue) / colorComponentDifference + (if (green < blue) 6F else 0F)
+                green -> (blue - red) / colorComponentDifference + 2F
+                else -> (red - green) / colorComponentDifference + 4F
+            }
+
+            hue /= 6F
         }
-
-        hue = when (maxColorComponent) {
-
-            red -> (green - blue) / colorComponentDifference + (if (green < blue) 6F else 0F)
-            green -> (blue - red) / colorComponentDifference + 2F
-            else -> (red - green) / colorComponentDifference + 4F
-        }
-
-        hue /= 6F
     }
 
     return floatArrayOf(hue * 360F, saturation, lightness)
