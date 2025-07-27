@@ -49,6 +49,33 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a font preference item.
+ * This preference allows the user to select a font from a list of available fonts.
+ * The selected font is saved in DataStore.
+ *
+ * @param modifier The modifier to be applied to the preference item.
+ * @param key A lambda function that returns the DataStore key for the font preference.
+ * @param initialValue A lambda function that returns the initial value of the font preference.
+ * @param entities A lambda function that returns a map of font resource IDs to font names.
+ * @param title A lambda function that returns the title of the preference item.
+ * @param summary A lambda function that returns the summary of the preference item.
+ * @param previewText A lambda function that returns the text to be displayed in the font preview.
+ * @param leadingContent A Composable function that displays content at the beginning of the
+ * preference item.
+ * @param trailingContent A Composable function that displays content at the end of the preference
+ * item.
+ * @param colors The colors to be used for the preference item.
+ * @param tonalElevation The tonal elevation of the preference item.
+ * @param shadowElevation The shadow elevation of the preference item.
+ * @param isDismissOnBackPress Whether the dialog should be dismissed when the back button is
+ * pressed.
+ * @param isDismissOnClickOutside Whether the dialog should be dismissed when the user clicks
+ * outside of it.
+ * @param summaryAlpha The alpha value for the summary text.
+ * @param enableResetButton A lambda function that returns whether the reset button should be
+ * enabled.
+ */
 @Composable
 fun FontPreference(
     modifier: Modifier = Modifier,
@@ -70,10 +97,10 @@ fun FontPreference(
     enableResetButton: () -> Boolean = { false }
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
 
-    val getSelectedItem by dataStore.getPreference(
+    val getSelectedItem by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -155,7 +182,7 @@ fun FontPreference(
 
                                         coroutineScope.launch(context = Dispatchers.IO) {
 
-                                            dataStore.setPreference(
+                                            datastore.setPreference(
                                                 key = key(),
                                                 value = fontItem.second
                                             )
@@ -193,7 +220,7 @@ fun FontPreference(
 
                             coroutineScope.launch(context = Dispatchers.IO) {
 
-                                dataStore.resetPreference(key = key())
+                                datastore.resetPreference(key = key())
                             }
                         }
                     )

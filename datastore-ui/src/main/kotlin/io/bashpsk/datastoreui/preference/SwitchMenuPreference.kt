@@ -23,6 +23,22 @@ import io.bashpsk.datastoreui.extension.setPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a switch preference item within a dropdown menu.
+ * This item allows users to toggle a boolean preference, which is persisted using DataStore.
+ *
+ * @param modifier Optional [Modifier] for styling the [DropdownMenuItem].
+ * @param key A lambda function that returns the [Preferences.Key] for the boolean preference.
+ * @param initialValue A lambda function that returns the initial boolean value of the preference
+ * if not already set. Defaults to `false`.
+ * @param title A lambda function that returns the title string to be displayed for the preference.
+ * @param leadingContent An optional Composable lambda to display content at the leading edge of the
+ * menu item (e.g., an icon). Defaults to an empty Composable.
+ * @param colors Optional [MenuItemColors] to customize the appearance of the menu item. Defaults to
+ * [MenuDefaults.itemColors].
+ * @param onMenuDismiss A lambda function that will be invoked when the menu item is clicked,
+ * typically to dismiss the dropdown menu.
+ */
 @Composable
 fun SwitchMenuPreference(
     modifier: Modifier = Modifier,
@@ -34,10 +50,10 @@ fun SwitchMenuPreference(
     onMenuDismiss: () -> Unit
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
 
-    val getSwitchState by dataStore.getPreference(
+    val getSwitchState by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -73,7 +89,7 @@ fun SwitchMenuPreference(
 
             coroutineScope.launch(context = Dispatchers.IO) {
 
-                dataStore.setPreference(key = key(), value = getSwitchState.not())
+                datastore.setPreference(key = key(), value = getSwitchState.not())
             }
 
             onMenuDismiss()

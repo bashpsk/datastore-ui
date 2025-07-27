@@ -45,6 +45,38 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a preference item with multiple selectable options.
+ * When clicked, it shows a dialog with a list of options (entities) where the user can select
+ * multiple items.
+ * The selected items are stored in DataStore.
+ *
+ * @param K The type of the key for the entities map.
+ * @param modifier Optional [Modifier] for the preference item.
+ * @param key A lambda function that returns the [Preferences.Key] for storing the selected set of
+ * strings.
+ * @param initialValue A lambda function that returns the initial set of selected string values.
+ * @param entities A lambda function that returns a map of options, where the key is of type [K] and
+ * the value is the display string. Defaults to an empty map.
+ * @param title A lambda function that returns the title of the preference.
+ * @param summary A lambda function that returns the summary text displayed below the title.
+ * Defaults to an empty string.
+ * @param leadingContent A Composable lambda for content to be displayed at the beginning of the
+ * preference item.
+ * @param trailingContent A Composable lambda for content to be displayed at the end of the
+ * preference item.
+ * @param colors [ListItemColors] to be used for the preference item.
+ * @param tonalElevation The tonal elevation of the preference item.
+ * @param shadowElevation The shadow elevation of the preference item.
+ * @param isDismissOnBackPress Whether the dialog should be dismissed when the back button is
+ * pressed. Defaults to `true`.
+ * @param isDismissOnClickOutside Whether the dialog should be dismissed when clicking outside the
+ * dialog. Defaults to `true`.
+ * @param summaryAlpha The alpha transparency for the summary text, ranging from 0.0 to 1.0.
+ * Defaults to [DatastoreUIDefaults.SUMMARY_ALPHA].
+ * @param enableResetButton A lambda function that returns `true` if a reset button should be shown
+ * in the dialog, `false` otherwise. Defaults to `false`.
+ */
 @Composable
 fun <K> SetOptionPreference(
     modifier: Modifier = Modifier,
@@ -65,11 +97,11 @@ fun <K> SetOptionPreference(
     enableResetButton: () -> Boolean = { false }
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(false) }
 
-    val getOptionSelectedItem by dataStore.getPreference(
+    val getOptionSelectedItem by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -147,7 +179,7 @@ fun <K> SetOptionPreference(
                                         false -> getOptionSelectedItem + item.second
                                     }
 
-                                    dataStore.setPreference(key = key(), value = newEntities)
+                                    datastore.setPreference(key = key(), value = newEntities)
                                 }
 
                                 dialogVisibleState.targetState = false
@@ -170,7 +202,7 @@ fun <K> SetOptionPreference(
 
                             coroutineScope.launch(context = Dispatchers.IO) {
 
-                                dataStore.resetPreference(key = key())
+                                datastore.resetPreference(key = key())
                             }
                         }
                     )
@@ -212,6 +244,15 @@ fun <K> SetOptionPreference(
     )
 }
 
+/**
+ * Composable function that represents a single option item in the list.
+ *
+ * @param K The type of the key in the item pair.
+ * @param modifier Modifier to be applied to the Row.
+ * @param item The pair of key and string representing the option item.
+ * @param isSelected Boolean indicating whether the item is currently selected.
+ * @param onItemClick Lambda function to be invoked when the item is clicked.
+ */
 @Composable
 private fun <K> OptionItemView(
     modifier: Modifier = Modifier,

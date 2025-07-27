@@ -44,6 +44,29 @@ import io.bashpsk.datastoreui.extension.setPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a list of options in a drop-down menu items,
+ * allowing the user to select one. The selected option is saved to DataStore.
+ *
+ * @param modifier Modifier to be applied to the drop-down menu.
+ * @param key A lambda function that returns the DataStore key for this preference.
+ * @param initialValue A lambda function that returns the initial value for this preference.
+ * @param entities A lambda function that returns a map of options, where the key is the display
+ * name and the value is the actual value to be stored.
+ * @param title A lambda function that returns the title to be displayed for the preference.
+ * @param leadingContent A Composable lambda function to display content at the beginning of the
+ * menu item.
+ * @param trailingContent A Composable lambda function to display content at the end of the menu
+ * item.
+ * @param colors Colors to be used for the menu item.
+ * @param isDismissOnBackPress Whether the dialog should be dismissed when the back button is
+ * pressed.
+ * @param isDismissOnClickOutside Whether the dialog should be dismissed when clicking outside the
+ * dialog.
+ * @param onMenuDismiss A lambda function to be called when the dialog is dismissed.
+ * @param enableResetButton A lambda function that determines whether a reset button should be shown
+ * in the dialog.
+ */
 @Composable
 fun <K, V> ListOptionMenuPreference(
     modifier: Modifier = Modifier,
@@ -60,11 +83,11 @@ fun <K, V> ListOptionMenuPreference(
     enableResetButton: () -> Boolean = { false }
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(initialState = false) }
 
-    val getSelectedItem by dataStore.getPreference(
+    val getSelectedItem by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -147,7 +170,7 @@ fun <K, V> ListOptionMenuPreference(
 
                                         coroutineScope.launch(context = Dispatchers.IO) {
 
-                                            dataStore.setPreference(
+                                            datastore.setPreference(
                                                 key = key(),
                                                 value = entryItem.second
                                             )
@@ -185,7 +208,7 @@ fun <K, V> ListOptionMenuPreference(
 
                             coroutineScope.launch(context = Dispatchers.IO) {
 
-                                dataStore.resetPreference(key = key())
+                                datastore.resetPreference(key = key())
                             }
                         }
                     )

@@ -30,6 +30,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 
+/**
+ * A Jetpack Compose dialog that allows the user to select a color.
+ *
+ * @param dialogVisibleState The state of the dialog's visibility.
+ * @param state The state of the color picker.
+ * @param onSelectedColor A callback that is invoked when the user selects a color.
+ */
 @Composable
 fun ColorPickerDialog(
     dialogVisibleState: MutableTransitionState<Boolean>,
@@ -154,6 +161,14 @@ fun ColorPickerDialog(
     }
 }
 
+/**
+ * A Jetpack Compose dialog that allows users to pick a color.
+ *
+ * @param dialogVisibleState The state that controls the visibility of the dialog.
+ * @param state The state of the color picker.
+ * @param onResetClick A callback that is invoked when the reset button is clicked.
+ * @param onSelectedColor A callback that is invoked when a color is selected.
+ */
 @Composable
 fun ColorPickerDialog(
     dialogVisibleState: MutableTransitionState<Boolean>,

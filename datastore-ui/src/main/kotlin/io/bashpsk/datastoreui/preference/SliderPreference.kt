@@ -39,6 +39,39 @@ import io.bashpsk.emptyformat.EmptyFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a slider preference.
+ * This preference allows the user to select a float value within a specified range using a slider.
+ * The selected value is stored in and retrieved from DataStore.
+ *
+ * @param modifier Optional [Modifier] for this Composable.
+ * @param key A lambda function that returns the [Preferences.Key] for storing the float value.
+ * @param initialValue A lambda function that returns the initial float value if no value is found
+ * in DataStore. Defaults to `0.0F`.
+ * @param title A lambda function that returns the title of the preference.
+ * @param summary A lambda function that returns a brief summary or description of the preference.
+ * Defaults to an empty string.
+ * @param leadingContent A Composable lambda for content to be displayed at the leading edge of the
+ * preference item. Defaults to an empty Composable.
+ * @param colors [ListItemColors] to be used for this preference item. Defaults to
+ * [ListItemDefaults.colors].
+ * @param tonalElevation The tonal elevation of this preference item. Defaults to
+ * [ListItemDefaults.Elevation].
+ * @param shadowElevation The shadow elevation of this preference item. Defaults to
+ * [ListItemDefaults.Elevation].
+ * @param valueRange The [ClosedFloatingPointRange] representing the valid range of values for the
+ * slider.
+ * @param steps The number of discrete steps the slider can take. If `0`, the slider is continuous.
+ * Defaults to `0`.
+ * @param isValueVisible A boolean indicating whether the current slider value should be displayed.
+ * Defaults to `false`.
+ * @param decimalFraction The number of decimal places to display for the slider value if
+ * `isValueVisible` is true. Defaults to `1`.
+ * @param sliderColors [SliderColors] to be used for the slider. Defaults to
+ * [SliderDefaults.colors].
+ * @param summaryAlpha The alpha (transparency) of the summary text, ranging from `0.0`
+ * (fully transparent) to `1.0` (fully opaque). Defaults to [DatastoreUIDefaults.SUMMARY_ALPHA].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SliderPreference(
@@ -60,11 +93,11 @@ fun SliderPreference(
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
     val sliderInteractionSource = remember { MutableInteractionSource() }
 
-    val getPosition by dataStore.getPreference(
+    val getPosition by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -123,7 +156,7 @@ fun SliderPreference(
 
                         coroutineScope.launch(context = Dispatchers.IO) {
 
-                            dataStore.setPreference(key = key(), value = position)
+                            datastore.setPreference(key = key(), value = position)
                         }
                     },
                     colors = sliderColors,

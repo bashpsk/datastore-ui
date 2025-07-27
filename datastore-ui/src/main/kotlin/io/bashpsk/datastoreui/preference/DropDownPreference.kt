@@ -38,6 +38,31 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that creates a drop-down preference item.
+ * This item allows the user to select a value from a list of options.
+ * The selected value is stored in DataStore.
+ *
+ * @param K The type of the key in the `entities` map.
+ * @param V The type of the value in the `entities` map and the type of the preference.
+ * @param modifier Optional [Modifier] for this Composable.
+ * @param key A lambda function that returns the [Preferences.Key] for this preference.
+ * @param initialValue A lambda function that returns the initial value for this preference if no
+ * value is stored.
+ * @param entities A lambda function that returns a [Map] of key-value pairs representing the
+ * options in the drop-down menu. The key is displayed in the menu, and the value is stored.
+ * Defaults to an empty map.
+ * @param title A lambda function that returns the title text for this preference.
+ * @param summary A lambda function that returns the summary text for this preference. Defaults to
+ * an empty string.
+ * @param leadingContent An optional Composable lambda for content to be displayed at the beginning
+ * of the preference item.
+ * @param colors [ListItemColors] to be used for this list item.
+ * @param tonalElevation The tonal elevation of this list item.
+ * @param shadowElevation The shadow elevation of this list item.
+ * @param summaryAlpha The alpha value for the summary text, ranging from 0.0 to 1.0. Defaults to
+ * [DatastoreUIDefaults.SUMMARY_ALPHA].
+ */
 @Composable
 fun <K, V> DropDownPreference(
     modifier: Modifier = Modifier,
@@ -54,10 +79,10 @@ fun <K, V> DropDownPreference(
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
 
-    val getSelectedItem by dataStore.getPreference(
+    val getSelectedItem by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -130,7 +155,7 @@ fun <K, V> DropDownPreference(
 
                             coroutineScope.launch(context = Dispatchers.IO) {
 
-                                dataStore.setPreference(key = key(), value = menuItem.value)
+                                datastore.setPreference(key = key(), value = menuItem.value)
                             }
 
                             isMenuExpanded = false

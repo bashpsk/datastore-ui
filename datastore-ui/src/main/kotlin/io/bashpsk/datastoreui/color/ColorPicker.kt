@@ -45,6 +45,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import io.bashpsk.emptyformat.EmptyFormat
 
+/**
+ * A composable function that provides a color picker interface.
+ *
+ * It allows users to select a color by manipulating its hue, saturation, lightness, and alpha
+ * components. The selected color is displayed in a preview area, along with its HEX and ARGB
+ * representations.
+ *
+ * @param modifier The modifier to be applied to the ColorPicker.
+ * @param state The state object that holds the current color selection and configuration.
+ *              Defaults to a new `rememberColorPickerState()` if not provided.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun ColorPicker(
@@ -119,6 +130,16 @@ fun ColorPicker(
     }
 }
 
+/**
+ * A composable function that displays a saturation and lightness panel for color selection.
+ *
+ * @param modifier The modifier to be applied to the panel.
+ * @param hueValue The current hue value (0F to 360F).
+ * @param saturationValue The current saturation value (0F to 1F).
+ * @param lightnessValue The current lightness value (0F to 1F).
+ * @param onSelectionChanged A callback function that is invoked when the saturation or lightness
+ * value changes. It provides the new saturation and lightness values as parameters.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun SaturationLightnessPanel(
@@ -220,6 +241,16 @@ private fun SaturationLightnessPanel(
     }
 }
 
+/**
+ * A Composable function that displays a hue panel.
+ * The panel allows the user to select a hue value by dragging a thumb along a horizontal track.
+ * The track is filled with a gradient of colors representing the hue spectrum.
+ *
+ * @param modifier The modifier to be applied to the HuePanel.
+ * @param currentHue The current hue value (0F to 360F).
+ * @param onHueChanged A lambda function that is called when the hue value changes.
+ * It receives the new hue value as a parameter.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun HuePanel(
@@ -339,6 +370,21 @@ private fun HuePanel(
     }
 }
 
+/**
+ * A composable function that displays an alpha slider panel.
+ *
+ * This panel allows the user to select the alpha (transparency) value of a color.
+ * It displays the current alpha value as a percentage and provides a visual slider
+ * with a checkerboard background to indicate transparency.
+ *
+ * @param modifier The modifier to be applied to the AlphaPanel.
+ * @param currentAlpha The current alpha value, ranging from 0.0 (fully transparent) to 1.0
+ * (fully opaque).
+ * @param baseColor The base color to which the alpha will be applied. This is used to render the
+ * gradient on the slider.
+ * @param onAlphaChanged A callback function that is invoked when the alpha value changes.
+ * It receives the new alpha value as a Float.
+ */
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun AlphaPanel(
@@ -511,6 +557,12 @@ private fun AlphaPanel(
     }
 }
 
+/**
+ * Composable function that displays a preview of the selected color along with its information.
+ *
+ * @param modifier Modifier to be applied to the layout.
+ * @param color The color to be displayed. Defaults to [Color.Unspecified].
+ */
 @Composable
 private fun ColorPreview(modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
 
@@ -543,6 +595,12 @@ private fun ColorPreview(modifier: Modifier = Modifier, color: Color = Color.Uns
 
 }
 
+/**
+ * A composable function that displays the color information in HEX and ARGB formats.
+ *
+ * @param modifier The modifier to be applied to the layout.
+ * @param color The color to display information for. Defaults to [Color.Unspecified].
+ */
 @Composable
 private fun ColorInfoPreview(modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
 
@@ -572,6 +630,14 @@ private fun ColorInfoPreview(modifier: Modifier = Modifier, color: Color = Color
     }
 }
 
+/**
+ * A composable function that displays a single color information item.
+ * It shows a label and its corresponding value in a row.
+ *
+ * @param modifier The modifier to be applied to the row.
+ * @param infoItem A pair containing the label (String) and the value (String) of the color
+ * information.
+ */
 @Composable
 private fun ColorInfoItem(modifier: Modifier = Modifier, infoItem: Pair<String, String>) {
 
@@ -609,6 +675,14 @@ private fun ColorInfoItem(modifier: Modifier = Modifier, infoItem: Pair<String, 
     }
 }
 
+/**
+ * Draws a drag handle on the canvas.
+ *
+ * @param position The center position of the drag handle.
+ * @param radius The radius of the outer circle of the drag handle.
+ * @param color The color of the drag handle.
+ * @param width The width of the stroke for the outer circle and the radius of the inner circle.
+ */
 private fun DrawScope.drawDragHandle(position: Offset, radius: Dp, color: Color, width: Dp) {
 
     val stroke = Stroke(width = width.toPx())
@@ -617,6 +691,28 @@ private fun DrawScope.drawDragHandle(position: Offset, radius: Dp, color: Color,
     drawCircle(center = position, radius = width.toPx(), color = color)
 }
 
+/**
+ * Converts a [Color] to its HSL (Hue, Saturation, Lightness) components.
+ *
+ * This function takes a [Color] object and calculates its corresponding HSL values.
+ * The HSL color model is an alternative representation of the RGB color model,
+ * designed to be more intuitive for human perception.
+ *
+ * - **Hue:** Represents the type of color (e.g., red, green, blue). It's an angle
+ *   on the color wheel, typically ranging from 0 to 360 degrees.
+ * - **Saturation:** Represents the intensity or purity of the color. A value of 0%
+ *   means a shade of gray, while 100% is the full color.
+ * - **Lightness (or Luminance):** Represents the brightness of the color. A value of 0%
+ *   is black, 100% is white, and 50% is the "normal" color.
+ *
+ * The calculation involves finding the maximum and minimum RGB components to determine
+ * the lightness and the difference between them for saturation and hue.
+ *
+ * @return A [FloatArray] containing the HSL components in the order:
+ *         `[hue (0-360), saturation (0-1), lightness (0-1)]`.
+ *         If the color is achromatic (a shade of gray, where red, green, and blue
+ *         are equal), the hue will be 0.
+ */
 internal fun Color.toHslComponents(): FloatArray {
 
     val maxColorComponent = maxOf(red, green, blue)

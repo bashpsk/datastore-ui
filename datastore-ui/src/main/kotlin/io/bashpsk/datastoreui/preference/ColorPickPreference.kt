@@ -35,6 +35,32 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * Composable function that displays a color picker preference item.
+ *
+ * This preference item allows the user to select a color, which is then stored in DataStore.
+ *
+ * @param modifier The modifier to be applied to the preference item.
+ * @param key A function that returns the DataStore key for storing the selected color.
+ * @param initialValue A function that returns the initial color value. Defaults to an unspecified
+ * color.
+ * @param title A function that returns the title of the preference item.
+ * @param summary A function that returns the summary text for the preference item. Defaults to an
+ * empty string.
+ * @param leadingContent A composable function to display content at the beginning of the preference
+ * item.
+ * @param colors The colors to be used for the list item. Defaults to [ListItemDefaults.colors].
+ * @param tonalElevation The tonal elevation of the list item. Defaults to
+ * [ListItemDefaults.Elevation].
+ * @param shadowElevation The shadow elevation of the list item. Defaults to
+ * [ListItemDefaults.Elevation].
+ * @param enableAlphaPanel A function that returns a boolean indicating whether to enable the alpha
+ * panel in the color picker dialog. Defaults to false.
+ * @param summaryAlpha The alpha value for the summary text. Defaults to
+ * [DatastoreUIDefaults.SUMMARY_ALPHA].
+ * @param enableResetButton A function that returns a boolean indicating whether to enable the reset
+ * button in the color picker dialog. Defaults to false.
+ */
 @Composable
 fun ColorPickPreference(
     modifier: Modifier = Modifier,
@@ -53,12 +79,12 @@ fun ColorPickPreference(
     enableResetButton: () -> Boolean = { false },
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(false) }
     val colorPickerState = rememberColorPickerState(enableAlphaPanel = enableAlphaPanel())
 
-    val getColorArgb by dataStore.getPreference(
+    val getColorArgb by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -72,14 +98,14 @@ fun ColorPickPreference(
 
                 coroutineScope.launch(context = Dispatchers.IO) {
 
-                    dataStore.resetPreference(key = key())
+                    datastore.resetPreference(key = key())
                 }
             },
             onSelectedColor = { color ->
 
                 coroutineScope.launch(context = Dispatchers.IO) {
 
-                    dataStore.setPreference(key = key(), value = color.toArgb())
+                    datastore.setPreference(key = key(), value = color.toArgb())
                 }
             }
         )
@@ -91,7 +117,7 @@ fun ColorPickPreference(
 
                 coroutineScope.launch(context = Dispatchers.IO) {
 
-                    dataStore.setPreference(key = key(), value = color.toArgb())
+                    datastore.setPreference(key = key(), value = color.toArgb())
                 }
             }
         )

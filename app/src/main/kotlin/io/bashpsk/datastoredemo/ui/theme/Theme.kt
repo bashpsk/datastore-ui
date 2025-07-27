@@ -51,9 +51,9 @@ fun DatastoreUITheme(
     content: @Composable () -> Unit
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
 
-    val getSelectedItem by dataStore.getPreference(
+    val getSelectedItem by datastore.getPreference(
         key = stringPreferencesKey("FONT-PREFERENCE"),
         initial = ""
     ).collectAsStateWithLifecycle(initialValue = "")

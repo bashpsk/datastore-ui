@@ -21,12 +21,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
-            val getAppTheme by dataStore.getPreference(
+            val getAppTheme by datastore.getPreference(
                 key = stringPreferencesKey("SINGLE-OPTION-MENU-PREFERENCE"),
                 initial = AppTheme.SYSTEM.name
             ).collectAsStateWithLifecycle(initialValue = AppTheme.SYSTEM.name)
 
-            CompositionLocalProvider(LocalDatastore provides dataStore) {
+            CompositionLocalProvider(LocalDatastore provides datastore) {
 
                 DatastoreUITheme(darkTheme = AppTheme.getTheme(theme = getAppTheme)) {
 

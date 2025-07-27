@@ -27,6 +27,27 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a switch preference item.
+ * This preference allows users to toggle a boolean value which is stored in DataStore.
+ *
+ * @param modifier Optional [Modifier] for this Composable.
+ * @param key A lambda function that returns the [Preferences.Key] for this preference.
+ * This key is used to store and retrieve the boolean value from DataStore.
+ * @param initialValue A lambda function that returns the initial boolean value of the preference
+ * if it's not already set in DataStore. Defaults to `false`.
+ * @param title A lambda function that returns the title string for the preference.
+ * @param summary A lambda function that returns the summary string for the preference.
+ * Displayed below the title. Defaults to an empty string.
+ * @param leadingContent An optional Composable lambda to display content at the start of the
+ * preference item.
+ * Defaults to an empty Composable.
+ * @param colors [ListItemColors] to be used for this list item.
+ * @param tonalElevation The tonal elevation of this list item.
+ * @param shadowElevation The shadow elevation of this list item.
+ * @param summaryAlpha The alpha transparency for the summary text.
+ * Must be a float between 0.0 and 1.0. Defaults to [DatastoreUIDefaults.SUMMARY_ALPHA].
+ */
 @Composable
 fun SwitchPreference(
     modifier: Modifier = Modifier,
@@ -42,10 +63,10 @@ fun SwitchPreference(
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
 
-    val getSwitchState by dataStore.getPreference(
+    val getSwitchState by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -58,7 +79,7 @@ fun SwitchPreference(
 
                     coroutineScope.launch(context = Dispatchers.IO) {
 
-                        dataStore.setPreference(key = key(), value = getSwitchState.not())
+                        datastore.setPreference(key = key(), value = getSwitchState.not())
                     }
                 }
             ),

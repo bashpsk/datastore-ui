@@ -81,20 +81,20 @@ import io.bashpsk.datastoreui.preference.TextFieldPreference
 fun SampleScreen() {
 
     val context = LocalContext.current
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val optionMenuVisibleState = remember { MutableTransitionState(initialState = false) }
 
-    val getFieldText by dataStore.getPreference(
+    val getFieldText by datastore.getPreference(
         key = stringPreferencesKey("TEXT-FIELD-PREFERENCE"),
         initial = ""
     ).collectAsStateWithLifecycle(initialValue = "")
 
-    val getAppTheme by dataStore.getPreference(
+    val getAppTheme by datastore.getPreference(
         key = stringPreferencesKey("SINGLE-OPTION-MENU-PREFERENCE"),
         initial = AppTheme.SYSTEM.name
     ).collectAsStateWithLifecycle(initialValue = AppTheme.SYSTEM.name)
 
-    val getSelectedItem by dataStore.getPreference(
+    val getSelectedItem by datastore.getPreference(
         key = stringSetPreferencesKey("MULTI-OPTION-PREFERENCE"),
         initial = emptySet()
     ).collectAsStateWithLifecycle(initialValue = emptySet())

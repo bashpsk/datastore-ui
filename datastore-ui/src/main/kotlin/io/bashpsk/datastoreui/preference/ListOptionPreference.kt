@@ -45,6 +45,38 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a list of options as a preference.
+ *
+ * This preference allows the user to select one option from a list. The selected
+ * option is saved to DataStore.
+ *
+ * @param modifier Modifier to be applied to the underlying `ListItem`.
+ * @param key A lambda function that returns the [Preferences.Key] for this preference.
+ * @param initialValue A lambda function that returns the initial value for this preference.
+ * @param entities A lambda function that returns a [Map] of options, where the key (`K`)
+ *   is typically the display name and the value (`V`) is the value to be stored.
+ * @param title A lambda function that returns the title of the preference.
+ * @param summary A lambda function that returns the summary text for the preference.
+ *   Defaults to an empty string.
+ * @param leadingContent A Composable lambda for displaying content at the beginning of the list
+ * item. Defaults to an empty Composable.
+ * @param trailingContent A Composable lambda for displaying content at the end of the list item.
+ *   Defaults to an empty Composable.
+ * @param colors [ListItemColors] to be used for the underlying `ListItem`.
+ * @param tonalElevation The tonal elevation of the `ListItem`.
+ * @param shadowElevation The shadow elevation of the `ListItem`.
+ * @param isDismissOnBackPress Whether the dialog should be dismissed when the back button is
+ * pressed. Defaults to `true`.
+ * @param isDismissOnClickOutside Whether the dialog should be dismissed when clicking outside its
+ * bounds. Defaults to `true`.
+ * @param summaryAlpha The alpha (transparency) of the summary text. Defaults to
+ *   [DatastoreUIDefaults.SUMMARY_ALPHA].
+ * @param enableResetButton A lambda function that returns a boolean indicating whether to show a
+ *   "Reset" button in the dialog. Defaults to `false`.
+ * @param K The type of the key in the `entities` map (usually the display name).
+ * @param V The type of the value in the `entities` map and the type of the preference value.
+ */
 @Composable
 fun <K, V> ListOptionPreference(
     modifier: Modifier = Modifier,
@@ -65,11 +97,11 @@ fun <K, V> ListOptionPreference(
     enableResetButton: () -> Boolean = { false }
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
     val dialogVisibleState = remember { MutableTransitionState(false) }
 
-    val getOptionSelectedItem by dataStore.getPreference(
+    val getOptionSelectedItem by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -141,7 +173,7 @@ fun <K, V> ListOptionPreference(
 
                                 coroutineScope.launch(context = Dispatchers.IO) {
 
-                                    dataStore.setPreference(key = key(), value = item.second)
+                                    datastore.setPreference(key = key(), value = item.second)
                                 }
                             }
                         )
@@ -162,7 +194,7 @@ fun <K, V> ListOptionPreference(
 
                             coroutineScope.launch(context = Dispatchers.IO) {
 
-                                dataStore.resetPreference(key = key())
+                                datastore.resetPreference(key = key())
                             }
                         }
                     )
@@ -204,6 +236,19 @@ fun <K, V> ListOptionPreference(
     )
 }
 
+/**
+ * A composable function that displays a single option item in a list.
+ * It includes a radio button to indicate selection and the item's text.
+ *
+ * @param K The type of the key in the key-value pair.
+ * @param V The type of the value in the key-value pair.
+ * @param modifier The modifier to be applied to the row.
+ * @param item The key-value pair representing the option item. The `first` element of the pair is
+ * displayed as text.
+ * @param isSelected A boolean indicating whether this item is currently selected.
+ * @param onItemClick A lambda function that is invoked when the item is clicked. It receives the
+ * `item` as a parameter.
+ */
 @Composable
 private fun <K, V> OptionItemView(
     modifier: Modifier = Modifier,

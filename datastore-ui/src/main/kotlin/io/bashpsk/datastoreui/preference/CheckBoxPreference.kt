@@ -21,6 +21,28 @@ import io.bashpsk.datastoreui.resources.DatastoreUIDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+/**
+ * A Composable function that displays a checkbox preference item.
+ * This preference item allows the user to toggle a boolean value, which is stored in DataStore.
+ *
+ * @param modifier Modifier to be applied to the ListItem.
+ * @param key A lambda function that returns the DataStore [Preferences.Key] for this preference.
+ * @param initialValue A lambda function that returns the initial boolean value if no value is
+ * stored in DataStore. Defaults to `false`.
+ * @param title A lambda function that returns the title of the preference.
+ * @param summary A lambda function that returns the summary text for the preference. Defaults to an
+ * empty string.
+ * @param leadingContent A Composable lambda function to display content at the beginning of the
+ * ListItem. Defaults to an empty Composable.
+ * @param colors [ListItemColors] to be used for this ListItem. Defaults to
+ * `ListItemDefaults.colors()`.
+ * @param tonalElevation The tonal elevation of this ListItem. Defaults to
+ * `ListItemDefaults.Elevation`.
+ * @param shadowElevation The shadow elevation of this ListItem. Defaults to
+ * `ListItemDefaults.Elevation`.
+ * @param summaryAlpha The alpha value for the summary text, ranging from 0.0 to 1.0. Defaults to
+ * `DatastoreUIDefaults.SUMMARY_ALPHA`.
+ */
 @Composable
 fun CheckBoxPreference(
     modifier: Modifier = Modifier,
@@ -36,10 +58,10 @@ fun CheckBoxPreference(
     summaryAlpha: Float = DatastoreUIDefaults.SUMMARY_ALPHA
 ) {
 
-    val dataStore = LocalDatastore.current
+    val datastore = LocalDatastore.current
     val coroutineScope = rememberCoroutineScope()
 
-    val getChecked by dataStore.getPreference(
+    val getChecked by datastore.getPreference(
         key = key(),
         initial = initialValue()
     ).collectAsStateWithLifecycle(initialValue = initialValue())
@@ -52,7 +74,7 @@ fun CheckBoxPreference(
 
                     coroutineScope.launch(context = Dispatchers.IO) {
 
-                        dataStore.setPreference(key = key(), value = getChecked.not())
+                        datastore.setPreference(key = key(), value = getChecked.not())
                     }
                 }
             ),
